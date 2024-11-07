@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Исходные файлы\fem">
+      <UniqueIdentifier>{319f78fd-98ad-4026-ae24-ae67a8d4058f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\fem\rects">
+      <UniqueIdentifier>{83d0bb23-f7a7-44a8-a217-84c749c8098d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\fem">
+      <UniqueIdentifier>{3ffe9954-08f8-4f01-800c-c911336a86d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\fem\rects">
+      <UniqueIdentifier>{d820e011-6877-4bd5-baf3-bb8a23a10ed1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="lab1.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\rects\domain_reader.cpp">
+      <Filter>Исходные файлы\fem\rects</Filter>
+    </ClCompile>
+    <ClCompile Include="logger.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="grid.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="fem\rects\domain_reader.h">
+      <Filter>Файлы заголовков\fem\rects</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\domain.h">
+      <Filter>Файлы заголовков\fem</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

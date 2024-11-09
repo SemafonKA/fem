@@ -20,10 +20,8 @@ int main() {
         logger::error("This error break all further program logic so the program will be terminated");
         return -1;
     }
-
-    logger::log("Reading domain from file was successed", logger::Colors::success);
+    logger::log("Reading domain from file was successful", logger::Colors::success);
     
-
     
 
     return 0;

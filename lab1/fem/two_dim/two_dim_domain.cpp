@@ -13,7 +13,7 @@ using std::string;
 using std::format;
 using std::vector;
 
-
+static
 size_t findMaxSize(const vector <double>& vec) {
     size_t max = 0;
     for (const auto& el : vec) {

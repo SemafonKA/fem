@@ -7,7 +7,7 @@ using namespace fem::two_dim;
 
 int main() {
     setlocale(LC_ALL, "ru-RU");
-    logger::inFrameDebug("Включен режим отладки. Производительность будет снижена");
+    logger::inFrameDebug("Debug mode enabled. Program may work slow and additional logs was output");
 
     string domainFilepath = "grid.txt";
 

@@ -15,7 +15,7 @@ using std::string;
 using fem::two_dim::Domain;
 
 /**
- * @brief Returns Kx and Ky for grid (count of points by X and Y sides)
+ * @brief Returns Kx and Ky for grid (count of points by X and Y sides) regards to subdivisions and additional splits
  * @return [Kx, Ky]
  */
 static auto getPointsCount(const Domain& domain) -> std::pair<size_t, size_t> {
@@ -52,8 +52,8 @@ static void fillSubdivides(fem::two_dim::GridQuadLinear& grid, size_t beg, size_
     auto yh1 = yLenght * fraction;
 
     for (size_t i = 1; i < nx; i++) {
-        grid.points.at(beg + i * step).x = grid.points.at(beg).x + xh1 * std::pow(cx, i - 1);
-        grid.points.at(beg + i * step).y = grid.points.at(beg).y + yh1 * std::pow(cx, i - 1);
+        grid.points.at(beg + i * step).x = grid.points.at(beg + (i - 1) * step).x + xh1 * std::pow(cx, i - 1);
+        grid.points.at(beg + i * step).y = grid.points.at(beg + (i - 1) * step).y + yh1 * std::pow(cx, i - 1);
     }
 }
 

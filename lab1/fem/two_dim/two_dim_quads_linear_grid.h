@@ -18,6 +18,4 @@ namespace fem::two_dim {
         void buildFrom(const Domain& domain);
     };
 
-    void NewFunction(const fem::two_dim::Domain& domain);
-
 }

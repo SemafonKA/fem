@@ -31,6 +31,9 @@
     <Filter Include="Исходные файлы\fem\two_dim\rects">
       <UniqueIdentifier>{83d0bb23-f7a7-44a8-a217-84c749c8098d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы заголовков\fem\includes">
+      <UniqueIdentifier>{d94281c1-0d5c-40ec-8065-87fabb6b9d83}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lab1.cpp">
@@ -39,7 +42,10 @@
     <ClCompile Include="logger.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="fem\two_dim\domain_reader.cpp">
+    <ClCompile Include="fem\two_dim\two_dim_domain_reader.cpp">
+      <Filter>Исходные файлы\fem\two_dim</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\two_dim\two_dim_domain.cpp">
       <Filter>Исходные файлы\fem\two_dim</Filter>
     </ClCompile>
   </ItemGroup>
@@ -52,14 +58,17 @@
     <ClInclude Include="logger.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="fem\two_dim\domain.h">
+    <ClInclude Include="fem\two_dim\two_dim_domain.h">
       <Filter>Файлы заголовков\fem\two_dim</Filter>
     </ClInclude>
-    <ClInclude Include="fem\two_dim\rects\grid.h">
+    <ClInclude Include="fem\two_dim\rects\two_dim_rects_grid.h">
       <Filter>Файлы заголовков\fem\two_dim\rects</Filter>
     </ClInclude>
-    <ClInclude Include="fem\two_dim\domain_reader.h">
+    <ClInclude Include="fem\two_dim\two_dim_domain_reader.h">
       <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\includes\domain.h">
+      <Filter>Файлы заголовков\fem\includes</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

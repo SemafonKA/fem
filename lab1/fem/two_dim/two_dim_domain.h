@@ -1,7 +1,8 @@
 #pragma once
 #include <vector>
+#include <string>
 
-namespace fem::twodim {
+namespace fem::two_dim {
 
     struct Subdomain {
         size_t materialNum{ 0 }; /// Number of material
@@ -15,6 +16,9 @@ namespace fem::twodim {
      * @brief Description of domain of selected field
      */
     struct Domain {
+        size_t Kx{}; /// count of X coordinate lines
+        size_t Ky{}; /// count of Y coordinate lines
+
         std::vector<double> X{}; /// Vector of X coordinate lines of Kx*Ky size
         std::vector<double> Y{}; /// Vector of Y coordinate lines of Kx*Ky size
 
@@ -27,6 +31,14 @@ namespace fem::twodim {
 
         size_t splitX{ 0 }; /// Count of additional subdivides for X coordinate lines (0 is no additional subdivides)
         size_t splitY{ 0 }; /// Count of additional subdivides for Y coordinate lines (0 is no additional subdivides)
+
+        /**
+         * @brief Read domain structure like described in example from file (ignoring comments)
+         * @param filepath - path to file with domain describing
+         * @return Domain structure
+         * @throws std::runtime_error - when the file cannot been opened or the data in the file contains errors
+         */
+        auto static readFromFile(const std::string& filepath) -> Domain;
     };
 
 }

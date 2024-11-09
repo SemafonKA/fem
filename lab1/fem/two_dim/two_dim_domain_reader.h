@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 
-#include "domain.h"
+#include "two_dim_domain.h"
 
 
 namespace fem::two_dim {

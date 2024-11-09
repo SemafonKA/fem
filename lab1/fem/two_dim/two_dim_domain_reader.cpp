@@ -1,4 +1,4 @@
-#include "domain_reader.h"
+#include "two_dim_domain_reader.h"
 
 #include <string>
 #include <sstream>
@@ -362,7 +362,7 @@ namespace fem::two_dim {
         }
         catch (std::exception& e) {
             logger::error(e.what());
-            throw e;
+            throw std::runtime_error(e.what());
         }
     }
 

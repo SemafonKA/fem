@@ -50,7 +50,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="grid.txt">
+    <Text Include="domain.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
   </ItemGroup>
@@ -69,6 +69,9 @@
     </ClInclude>
     <ClInclude Include="fem\includes\domain.h">
       <Filter>Файлы заголовков\fem\includes</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

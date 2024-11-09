@@ -1,5 +1,4 @@
 #include "logger.h"
-
 #include "fem/includes/domain.h"
 
 using namespace std;
@@ -9,11 +8,11 @@ int main() {
     setlocale(LC_ALL, "ru-RU");
     logger::inFrameDebug("Debug mode enabled. Program may work slow and additional logs was output");
 
-    string domainFilepath = "grid.txt";
+    string domainFilepath = "domain.txt";
 
     logger::log(format("Reading domain from file \"{}\"", domainFilepath));
     
-    auto domain = Domain();
+    Domain domain;
     try {
         domain = Domain::readFromFile(domainFilepath);
     }
@@ -23,9 +22,9 @@ int main() {
     }
 
     logger::log("Reading domain from file was successed", logger::Colors::success);
+    
 
-    cout << domain.dump() << endl;
-    cout << domain.dumpNoComments() << endl;
+    
 
     return 0;
 }

@@ -135,7 +135,7 @@
     <ClCompile Include="logger.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="grid.txt" />
+    <Text Include="domain.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fem\includes\domain.h" />
@@ -143,6 +143,7 @@
     <ClInclude Include="fem\two_dim\two_dim_domain_reader.h" />
     <ClInclude Include="fem\two_dim\rects\two_dim_rects_grid.h" />
     <ClInclude Include="logger.h" />
+    <ClInclude Include="timer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

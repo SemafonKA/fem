@@ -17,8 +17,8 @@ namespace logger {
             return;
 
         case Colors::debug_green:
-            std::cout << termcolor::on_green << termcolor::white;
-            std::cerr << termcolor::on_green << termcolor::white;
+            std::cout << termcolor::green;
+            std::cerr << termcolor::green;
             return;
 
         case Colors::blue:
@@ -83,7 +83,10 @@ namespace logger {
      */
     void debug(const std::string& str, Colors color) {
 #ifndef NDEBUG
-        log(str, color);
+        auto time = getCurrentTime();
+        setColor(color);
+        std::cout << std::format("[DBG : {}] - {}\n", time, str);
+        resetColor();
 #endif
     }
 

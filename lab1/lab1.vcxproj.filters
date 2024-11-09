@@ -16,25 +16,31 @@
     <Filter Include="Исходные файлы\fem">
       <UniqueIdentifier>{319f78fd-98ad-4026-ae24-ae67a8d4058f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Исходные файлы\fem\rects">
-      <UniqueIdentifier>{83d0bb23-f7a7-44a8-a217-84c749c8098d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Файлы заголовков\fem">
       <UniqueIdentifier>{3ffe9954-08f8-4f01-800c-c911336a86d0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Файлы заголовков\fem\rects">
+    <Filter Include="Файлы заголовков\fem\two_dim">
+      <UniqueIdentifier>{66e624df-ae68-4461-8acc-ed75f79417f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\fem\two_dim\rects">
       <UniqueIdentifier>{d820e011-6877-4bd5-baf3-bb8a23a10ed1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\fem\two_dim">
+      <UniqueIdentifier>{bccb3651-1edc-4227-9019-59e9e3cd6993}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\fem\two_dim\rects">
+      <UniqueIdentifier>{83d0bb23-f7a7-44a8-a217-84c749c8098d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lab1.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="fem\rects\domain_reader.cpp">
-      <Filter>Исходные файлы\fem\rects</Filter>
-    </ClCompile>
     <ClCompile Include="logger.cpp">
       <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\two_dim\domain_reader.cpp">
+      <Filter>Исходные файлы\fem\two_dim</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -43,14 +49,17 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="fem\rects\domain_reader.h">
-      <Filter>Файлы заголовков\fem\rects</Filter>
-    </ClInclude>
     <ClInclude Include="logger.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="fem\domain.h">
-      <Filter>Файлы заголовков\fem</Filter>
+    <ClInclude Include="fem\two_dim\domain.h">
+      <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\two_dim\rects\grid.h">
+      <Filter>Файлы заголовков\fem\two_dim\rects</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\two_dim\domain_reader.h">
+      <Filter>Файлы заголовков\fem\two_dim</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

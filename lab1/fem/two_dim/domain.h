@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
 
-namespace fem::twodim {
+
+
+namespace fem::two_dim {
 
     struct Subdomain {
         size_t materialNum{ 0 }; /// Number of material
@@ -15,6 +17,9 @@ namespace fem::twodim {
      * @brief Description of domain of selected field
      */
     struct Domain {
+        size_t Kx{}; /// count of X coordinate lines
+        size_t Ky{}; /// count of Y coordinate lines
+
         std::vector<double> X{}; /// Vector of X coordinate lines of Kx*Ky size
         std::vector<double> Y{}; /// Vector of Y coordinate lines of Kx*Ky size
 

@@ -129,7 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="fem\rects\domain_reader.cpp" />
+    <ClCompile Include="fem\two_dim\domain_reader.cpp" />
     <ClCompile Include="lab1.cpp" />
     <ClCompile Include="logger.cpp" />
   </ItemGroup>
@@ -137,8 +137,9 @@
     <Text Include="grid.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="fem\domain.h" />
-    <ClInclude Include="fem\rects\domain_reader.h" />
+    <ClInclude Include="fem\two_dim\domain.h" />
+    <ClInclude Include="fem\two_dim\domain_reader.h" />
+    <ClInclude Include="fem\two_dim\rects\grid.h" />
     <ClInclude Include="logger.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

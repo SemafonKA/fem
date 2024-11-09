@@ -55,7 +55,7 @@
     <ClInclude Include="fem\two_dim\two_dim_domain.h">
       <Filter>Файлы заголовков\fem\two_dim</Filter>
     </ClInclude>
-    <ClInclude Include="fem\includes\domain.h">
+    <ClInclude Include="fem\includes\fem.h">
       <Filter>Файлы заголовков\fem\includes</Filter>
     </ClInclude>
     <ClInclude Include="timer.h">

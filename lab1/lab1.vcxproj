@@ -138,7 +138,7 @@
     <Text Include="domain.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="fem\includes\domain.h" />
+    <ClInclude Include="fem\includes\fem.h" />
     <ClInclude Include="fem\two_dim\two_dim_domain.h" />
     <ClInclude Include="fem\two_dim\two_dim_point.h" />
     <ClInclude Include="fem\two_dim\two_dim_quads_linear_grid.h" />

@@ -11,7 +11,7 @@ using std::string;
 namespace fem::two_dim {
 
     void GridQuadLinear::buildFrom(const Domain& domain) {
-        throw std::runtime_error("not implemented");
+        
     }
 
 }

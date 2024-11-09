@@ -5,11 +5,13 @@ namespace logger {
     void inline setColor(Colors color) {
         switch (color) {
         case Colors::red:
+        case Colors::error:
             std::cout << termcolor::red;
             std::cerr << termcolor::red;
             return;
 
         case Colors::green:
+        case Colors::success:
             std::cout << termcolor::bright_green;
             std::cerr << termcolor::bright_green;
             return;

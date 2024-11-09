@@ -22,7 +22,7 @@ int main() {
         return -1;
     }
 
-    logger::log("Reading domain from file was successed", logger::Colors::green);
+    logger::log("Reading domain from file was successed", logger::Colors::success);
 
     return 0;
 }

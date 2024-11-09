@@ -15,7 +15,9 @@ namespace logger {
         debug_green,
         blue,
         yellow,
-        standard
+        standard,
+        success,
+        error,
     };
 
     /**

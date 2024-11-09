@@ -12,6 +12,7 @@ namespace logger {
     enum class Colors {
         red,
         green,
+        debug_green,
         blue,
         yellow,
         standard
@@ -34,9 +35,9 @@ namespace logger {
     /**
      * @brief Logs simple debug text into terminal with timestamp added. Work ONLY in debug mode!
      * @param str - text to log into terminal (without `\n` symbol)
-     * @param color - color to be outputted to the terminal (green by default)
+     * @param color - color to be outputted to the terminal (debug_green by default)
      */
-    void debug(const std::string& str, Colors color = Colors::green);
+    void debug(const std::string& str, Colors color = Colors::debug_green);
 
     /**
      * @brief Logs some text into terminal into starred (`*`) frame
@@ -48,7 +49,7 @@ namespace logger {
     /**
      * @brief Logs some debug text into terminal into starred (`*`) frame
      * @param str - text to log into frame (should be not so long!)
-     * @param color - color to be outputted to the terminal (green by default)
+     * @param color - color to be outputted to the terminal (debug_green by default)
      */
-    void inFrameDebug(const std::string& str, Colors color = Colors::green);
+    void inFrameDebug(const std::string& str, Colors color = Colors::debug_green);
 }

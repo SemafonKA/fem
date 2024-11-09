@@ -14,6 +14,11 @@ namespace logger {
             std::cerr << termcolor::bright_green;
             return;
 
+        case Colors::debug_green:
+            std::cout << termcolor::on_green << termcolor::white;
+            std::cerr << termcolor::on_green << termcolor::white;
+            return;
+
         case Colors::blue:
             std::cout << termcolor::bright_blue;
             std::cerr << termcolor::bright_blue;

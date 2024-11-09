@@ -41,11 +41,11 @@ namespace logger {
         }
     }
 
-    void inline resetColor() {
+    static inline void resetColor() {
         setColor(Colors::standard);
     }
 
-    auto inline getCurrentTime() -> std::string {
+    static inline auto getCurrentTime() -> std::string {
         auto const time = std::chrono::current_zone()->to_local(std::chrono::system_clock::now());
         return std::format("{:%X}", time); // add %Y-%m-%d to print date also
     }
@@ -108,10 +108,10 @@ namespace logger {
     }
 
     /**
- * @brief Logs some debug text into terminal into starred (`*`) frame
- * @param str - text to log into frame (should be not so long!)
- * @param color - color to be outputted to the terminal (green by default)
- */
+     * @brief Logs some debug text into terminal into starred (`*`) frame
+     * @param str - text to log into frame (should be not so long!)
+     * @param color - color to be outputted to the terminal (green by default)
+     */
     void inFrameDebug(const std::string& str, Colors color) {
 #ifndef NDEBUG
         inFrame(str, color);

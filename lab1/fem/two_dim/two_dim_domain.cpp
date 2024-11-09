@@ -7,14 +7,18 @@
 #include <vector>
 
 #include "two_dim_domain_reader.h"
+#include "../../logger.h"
+#include "../../timer.h"
+
+#undef max
 
 using std::ostringstream;
 using std::string;
 using std::format;
 using std::vector;
 
-static
-size_t findMaxSize(const vector <double>& vec) {
+
+static auto findMaxSize(const vector <double>& vec) -> size_t {
     size_t max = 0;
     for (const auto& el : vec) {
         max = std::max(max, format("{}", el).size());
@@ -31,7 +35,12 @@ namespace fem::two_dim {
      * @throws std::runtime_error - when the file cannot been opened or the data in the file contains errors
      */
     auto Domain::readFromFile(const std::string& filepath)->Domain {
-        return readDomainFromFile(filepath);
+        auto timer = Timer();
+        auto domain = readDomainFromFile(filepath);
+        auto elapsed = timer.elapsedMilliseconds();
+        logger::debug(format("Reading domain from file completed by {} ms", elapsed));
+
+        return domain;
     }
 
     /**

@@ -38,18 +38,20 @@ namespace fem::two_dim {
          * @return Domain structure
          * @throws std::runtime_error - when the file cannot been opened or the data in the file contains errors
          */
-        auto static readFromFile(const std::string& filepath) -> Domain;
+        static auto readFromFile(const std::string& filepath) -> Domain;
 
         /**
          * @brief Make a dump of current domain includes additional comments
          * @return - string representation of dump file
          */
+        [[nodiscard]]
         auto dump() -> std::string;
 
         /**
          * @brief Make a dump of current domain without additional comments
          * @return - string representation of dump file
          */
+        [[nodiscard]]
         auto dumpNoComments() -> std::string;
     };
 

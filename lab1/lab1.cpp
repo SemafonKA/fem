@@ -24,5 +24,8 @@ int main() {
 
     logger::log("Reading domain from file was successed", logger::Colors::success);
 
+    cout << domain.dump() << endl;
+    cout << domain.dumpNoComments() << endl;
+
     return 0;
 }

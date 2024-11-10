@@ -22,18 +22,15 @@ using std::ostringstream;
  * @return [Kx, Ky]
  */
 static auto getPointsCount(const Domain& domain) -> std::pair<size_t, size_t> {
-    size_t Kx_ext = domain.Kx;
-    size_t Ky_ext = domain.Ky;
+    size_t Kx_ext = 1;
+    size_t Ky_ext = 1;
 
     for (auto el : domain.nx) {
-        Kx_ext += el - 1;
+        Kx_ext += el * (domain.splitX + 1);
     }
     for (auto el : domain.ny) {
-        Ky_ext += el - 1;
+        Ky_ext += el * (domain.splitX + 1);
     }
-
-    Kx_ext = Kx_ext * (domain.splitX + 1);
-    Ky_ext = Ky_ext * (domain.splitX + 1);
 
     return { Kx_ext, Ky_ext };
 }
@@ -180,12 +177,12 @@ static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& gr
     auto XlinesToPoints = std::vector<size_t>(domain.Kx);
     XlinesToPoints.at(0) = 0;
     for (size_t i = 0; i < domain.nx.size(); i++) {
-        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i];
+        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i] * (domain.splitX + 1);
     }
     auto YlinesToPoints = std::vector<size_t>(domain.Ky);
     YlinesToPoints.at(0) = 0;
     for (size_t i = 0; i < domain.ny.size(); i++) {
-        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i];
+        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * (domain.splitY + 1);
     }
 
     for (const auto& sub : domain.subdomains) {

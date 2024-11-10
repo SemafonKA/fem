@@ -135,10 +135,6 @@
     <ClCompile Include="logger.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="domain.txt" />
-    <Text Include="grid.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="fem\includes\fem.h" />
     <ClInclude Include="fem\two_dim\two_dim_domain.h" />
     <ClInclude Include="fem\two_dim\two_dim_point.h" />

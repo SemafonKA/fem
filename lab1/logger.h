@@ -57,7 +57,7 @@ namespace logger {
     void inFrame(const std::string& str, Colors color = Colors::standard);
 
     /**
-     * @brief Logs some debug text into terminal into starred (`*`) frame
+     * @brief Logs some debug text into terminal into starred (`*`) frame. Work ONLY in debug mode!
      * @param str - text to log into frame (should be not so long!)
      * @param color - color to be outputted to the terminal (debug_green by default)
      */

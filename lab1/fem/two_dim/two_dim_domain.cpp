@@ -357,7 +357,7 @@ static auto readDomainFromFile(const std::string& filepath) -> fem::two_dim::Dom
 
     if (!file.is_open()) {
         const auto errorStr = format("Error opening file \"{}\".", filepath);
-        logger::error(errorStr);
+        logger::debug(errorStr);
         throw std::runtime_error(errorStr);
     }
     // Read entire file at once
@@ -370,7 +370,7 @@ static auto readDomainFromFile(const std::string& filepath) -> fem::two_dim::Dom
         return result;
     }
     catch (std::exception& e) {
-        logger::error(e.what());
+        logger::debug(e.what());
         throw std::runtime_error(e.what());
     }
 }

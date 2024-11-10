@@ -6,10 +6,10 @@ namespace fem::two_dim {
 
     struct Subdomain {
         size_t materialNum{ 0 }; /// Number of material
-        size_t xBeginNum{ 0 };   /// Number of left X coordinate line 
-        size_t xEndNum{ 0 };     /// Number of right X coordinate line
-        size_t yBeginNum{ 0 };   /// Number of bottom Y coordinate line 
-        size_t yEndNum{ 0 };     /// Number of top Y coordinate line 
+        size_t xBeginNum{ 0 };   /// Number of left X coordinate line (starts with 1)
+        size_t xEndNum{ 0 };     /// Number of right X coordinate line (starts with 1)
+        size_t yBeginNum{ 0 };   /// Number of bottom Y coordinate line (starts with 1) 
+        size_t yEndNum{ 0 };     /// Number of top Y coordinate line (starts with 1) 
     };
 
     /**

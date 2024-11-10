@@ -14,6 +14,7 @@ using std::format;
 using std::string;
 using fem::two_dim::Domain;
 
+
 /**
  * @brief Returns Kx and Ky for grid (count of points by X and Y sides) regards to subdivisions and additional splits
  * @return [Kx, Ky]
@@ -35,6 +36,7 @@ static auto getPointsCount(const Domain& domain) -> std::pair<size_t, size_t> {
     return { Kx_ext, Ky_ext };
 }
 
+
 /**
  * @brief Fill subdivide points for single axis and emplace it in grid by indices
  * @param grid - original grid needs to be changed (points must be preallocated)
@@ -42,8 +44,26 @@ static auto getPointsCount(const Domain& domain) -> std::pair<size_t, size_t> {
  * @param end - index of end point of interval
  * @param step - step for index to get next point
  * @param cx - sparse coefficient
+ * @throw std::invalid_argument - in cases of: `beg == end`, `step == 0`, `cx <= 0`
  */
 static void fillSubdivides(fem::two_dim::GridQuadLinear& grid, size_t beg, size_t end, size_t step, double cx) {
+    // some debug checks
+    if (beg == end) {
+        auto error = format("Function `two_dim_quads_linear_grid.cpp::fillSubdivides`: parameters `beg` and `end` has equivalent values ({} and {})", beg, end);
+        logger::debug(error);
+        throw std::invalid_argument("Parameters `beg` and `end` must be different");
+    }
+    if (step == 0) {
+        auto error = format("Function `two_dim_quads_linear_grid.cpp::fillSubdivides`: parameters `step` must be > 0, but it is {}.", step);
+        logger::debug(error);
+        throw std::invalid_argument("Parameter `step` must be > 0");
+    }
+    if (cx <= 0) {
+        auto error = format("Function `two_dim_quads_linear_grid.cpp::fillSubdivides`: parameters `cx` must be > 0, but it is {}.", cx);
+        logger::debug(error);
+        throw std::invalid_argument("Parameter `cx` must be > 0");
+    }
+
     auto xLenght = grid.points.at(end).x - grid.points.at(beg).x;
     auto yLenght = grid.points.at(end).y - grid.points.at(beg).y;
     size_t nx = (end - beg) / step;
@@ -59,8 +79,14 @@ static void fillSubdivides(fem::two_dim::GridQuadLinear& grid, size_t beg, size_
 
 /**
  * @brief Compute and fill point coordinates for chosen domain
+ * @throw std::invalid_argument - in case of `grid.Kx == 0` or `grid.Ky == 0`
  */
 static void fillPoints(const Domain& domain, fem::two_dim::GridQuadLinear& grid) {
+    if (grid.Kx == 0 || grid.Ky == 0) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillPoints`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
+        logger::warn(warnMsg);
+    }
+
     size_t jj = 0; // Y index for grid
     for (size_t j = 0; j < domain.Ky - 1; j++) {
         size_t ii = 0; // X index for grid
@@ -105,20 +131,133 @@ static void fillPoints(const Domain& domain, fem::two_dim::GridQuadLinear& grid)
     }
 }
 
+/**
+ * @brief Generate and fill meshes for grid
+ * @param grid - grid with pre-generated points
+ * @throw std::invalid_argument - in case of `grid.Kx == 0` or `grid.Ky == 0`
+ */
+static void fillMeshes(fem::two_dim::GridQuadLinear& grid) {
+    if (grid.Kx == 0 || grid.Ky == 0) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMeshes`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
+        logger::warn(warnMsg);
+    }
+
+    auto n = grid.Kx; // count of nodes by X
+    auto m = grid.Ky; // count of nodes by Y
+
+    // Reserve memory for meshes in grid
+    grid.meshes.reserve((n - 1) * (m - 1));
+
+    for (size_t j = 0; j < m - 1; j++) {
+        for (size_t i = 0; i < n - 1; i++) {
+            auto mesh = fem::two_dim::MeshQuadLinear();
+            mesh.indOfPoints = {
+                i + j * n,
+                (i + 1) + j * n,
+                i + (j + 1) * n,
+                (i + 1) + (j + 1) * n,
+            };
+            grid.meshes.push_back(std::move(mesh));
+        }
+    }
+}
+
+/**
+ * @brief Fill materials of meshes by subdomains
+ * @throw std::invalid_argument - if `Kx == 0` or `Ky == 0`, `grid.meshes.size() == 0`
+ */
+static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& grid) {
+    if (grid.Kx == 0 || grid.Ky == 0) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
+        logger::warn(warnMsg);
+    }
+    if (grid.meshes.empty()) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: there is no meshes in grid (size = {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillMeshes` at first", grid.meshes.size());
+        logger::warn(warnMsg);
+    }
+
+    // Domain to Grid points
+    auto XlinesToPoints = std::vector<size_t>(domain.Kx);
+    XlinesToPoints.at(0) = 0;
+    for (size_t i = 0; i < domain.nx.size(); i++) {
+        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i];
+    }
+    auto YlinesToPoints = std::vector<size_t>(domain.Ky);
+    YlinesToPoints.at(0) = 0;
+    for (size_t i = 0; i < domain.ny.size(); i++) {
+        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i];
+    }
+
+    for (const auto& sub : domain.subdomains) {
+        bool isSubInUse = false;
+        // Convert subdomain coordinate lines to grid coordinate lines
+        auto xBegLine = XlinesToPoints[sub.xBeginNum - 1];
+        auto xEndLine = XlinesToPoints[sub.xEndNum - 1];
+        auto yBegLine = YlinesToPoints[sub.yBeginNum - 1];
+        auto yEndLine = YlinesToPoints[sub.yEndNum - 1];
+
+        for (auto& mesh : grid.meshes) {
+            // Get coordinate lines for BL and TR nodes of mesh
+            auto blLineX = mesh.indOfPoints[0] % grid.Kx;
+            auto blLineY = mesh.indOfPoints[0] / grid.Kx;
+            auto trLineX = mesh.indOfPoints[3] % grid.Kx;
+            auto trLineY = mesh.indOfPoints[3] / grid.Kx;
+
+            bool isMeshInSub = true;
+            isMeshInSub &= blLineX >= xBegLine;
+            isMeshInSub &= trLineX <= xEndLine;
+            isMeshInSub &= blLineY >= yBegLine;
+            isMeshInSub &= trLineY <= yEndLine;
+
+            if (isMeshInSub) {
+                mesh.materialNum = sub.materialNum;
+                isSubInUse = true;
+            }
+        }
+        if (isSubInUse) {
+            grid.usedMaterials.push_back(sub.materialNum);
+        }
+    }
+
+    // Additional checks
+    bool allHasMaterial = true;
+    for (const auto& mesh : grid.meshes) {
+        allHasMaterial &= mesh.materialNum != 0;
+    }
+    if (!allHasMaterial) {
+        logger::log("Some meshes has not material. Maybe you make some mistake with subdomains?", logger::Colors::warning);
+    }
+}
+
+
 namespace fem::two_dim {
 
     void GridQuadLinear::buildFrom(const Domain& domain) {
+        auto timer = Timer(); // Debug timer
+
         // Get overall point count
         auto [countX, countY] = getPointsCount(domain);
         Kx = countX; Ky = countY;
         points.resize(Kx * Ky);
-        logger::debug(format("Grid will be {}x{} size ({} overall)", Kx, Ky, points.size()));
+        logger::debug(format("GridQuadLinear::buildFrom: Grid will be {}x{} size ({} overall)", Kx, Ky, points.size()));
 
         // Fill points
-        auto timer = Timer();
+        timer.start();
         fillPoints(domain, *this);
         timer.stop();
-        logger::debug(format("Points was computed in {} ms", timer.elapsedMilliseconds()));
+        logger::debug(format("GridQuadLinear::buildFrom: Points was computed in {} ms", timer.elapsedMilliseconds()));
+
+        // Fill meshes
+        timer.start();
+        fillMeshes(*this);
+        timer.stop();
+        logger::debug(format("GridQuadLinear::buildFrom: Meshes was computed in {} ms", timer.elapsedMilliseconds()));
+
+        // Fill materials
+        timer.start();
+        fillMaterials(domain, *this);
+        timer.stop();
+        logger::debug(format("GridQuadLinear::buildFrom: Materials was setted in {} ms", timer.elapsedMilliseconds()));
     }
 
 }

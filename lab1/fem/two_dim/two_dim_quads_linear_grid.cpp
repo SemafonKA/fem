@@ -4,6 +4,7 @@
 #include <format>
 #include <string>
 #include <array>
+#include <sstream>
 
 #include "../../timer.h"
 #include "../../logger.h"
@@ -13,6 +14,7 @@ using std::array;
 using std::format;
 using std::string;
 using fem::two_dim::Domain;
+using std::ostringstream;
 
 
 /**
@@ -79,12 +81,12 @@ static void fillSubdivides(fem::two_dim::GridQuadLinear& grid, size_t beg, size_
 
 /**
  * @brief Compute and fill point coordinates for chosen domain
- * @throw std::invalid_argument - in case of `grid.Kx == 0` or `grid.Ky == 0`
  */
 static void fillPoints(const Domain& domain, fem::two_dim::GridQuadLinear& grid) {
     if (grid.Kx == 0 || grid.Ky == 0) {
         auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillPoints`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
-        logger::warn(warnMsg);
+        logger::debug(warnMsg, logger::Colors::warning);
+        throw std::runtime_error("Bad grid size");
     }
 
     size_t jj = 0; // Y index for grid
@@ -134,12 +136,11 @@ static void fillPoints(const Domain& domain, fem::two_dim::GridQuadLinear& grid)
 /**
  * @brief Generate and fill meshes for grid
  * @param grid - grid with pre-generated points
- * @throw std::invalid_argument - in case of `grid.Kx == 0` or `grid.Ky == 0`
  */
 static void fillMeshes(fem::two_dim::GridQuadLinear& grid) {
     if (grid.Kx == 0 || grid.Ky == 0) {
         auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMeshes`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
-        logger::warn(warnMsg);
+        logger::debug(warnMsg, logger::Colors::warning);
     }
 
     auto n = grid.Kx; // count of nodes by X
@@ -164,16 +165,15 @@ static void fillMeshes(fem::two_dim::GridQuadLinear& grid) {
 
 /**
  * @brief Fill materials of meshes by subdomains
- * @throw std::invalid_argument - if `Kx == 0` or `Ky == 0`, `grid.meshes.size() == 0`
  */
 static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& grid) {
     if (grid.Kx == 0 || grid.Ky == 0) {
         auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
-        logger::warn(warnMsg);
+        logger::debug(warnMsg, logger::Colors::warning);
     }
     if (grid.meshes.empty()) {
         auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: there is no meshes in grid (size = {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillMeshes` at first", grid.meshes.size());
-        logger::warn(warnMsg);
+        logger::debug(warnMsg, logger::Colors::warning);
     }
 
     // Domain to Grid points
@@ -232,8 +232,14 @@ static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& gr
 
 namespace fem::two_dim {
 
+    /**
+     * @brief Build grid from provided domain
+     * @param domain - the domain from which the grid will be built
+     */
     void GridQuadLinear::buildFrom(const Domain& domain) {
         auto timer = Timer(); // Debug timer
+
+        // TODO: Throw bad_domain exception if domain is bad
 
         // Get overall point count
         auto [countX, countY] = getPointsCount(domain);
@@ -258,6 +264,54 @@ namespace fem::two_dim {
         fillMaterials(domain, *this);
         timer.stop();
         logger::debug(format("GridQuadLinear::buildFrom: Materials was setted in {} ms", timer.elapsedMilliseconds()));
+    }
+
+    /**
+     * @brief Format grid points to string in format like `Kx Ky \\n x[0] y[0]   x[1] y[1]   ... \\n x[Kx] y[Kx]   ...`
+     * @return formatted string
+     */
+    auto GridQuadLinear::dumpPoints() const -> std::string {
+        auto oss = ostringstream();
+
+        oss << format("{} {}\n\n", Kx, Ky);
+
+        for (size_t j = 0; j < Ky; j++) {
+            for (size_t i = 0; i < Kx; i++) {
+                const auto& pt = points[i + Kx * j];
+
+                oss << format("{: 20.14e} {: 20.14e}   ", pt.x, pt.y);
+            }
+            oss << "\n";
+        }
+
+        return oss.str();
+    }
+
+    /**
+     * @brief Format grid meshes to string in format like `Km \\n m[i]   p[0] p[1] p[2] p[3] \\n ...`
+     * @return formatted string
+     */
+    auto GridQuadLinear::dumpMeshes() const -> std::string {
+        auto oss = ostringstream();
+
+        oss << format("{}\n\n", meshes.size());
+
+        for (const auto& mesh : meshes) {
+            oss << format("{:3}   {:05} {:05} {:05} {:05}\n", mesh.materialNum, mesh.indOfPoints[0], mesh.indOfPoints[1], mesh.indOfPoints[2], mesh.indOfPoints[3]);
+        }
+
+        return oss.str();
+    }
+
+    /**
+     * @brief Dump grid to string if computer-readable format (see `dumpPoints` and `dumpMeshes` to know what format is)
+     * @return formatted string
+     */
+    auto GridQuadLinear::dump() const -> std::string {
+        auto oss = ostringstream();
+        oss << dumpPoints() << "\n";
+        oss << dumpMeshes();
+        return oss.str();
     }
 
 }

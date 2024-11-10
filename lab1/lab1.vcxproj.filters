@@ -47,6 +47,9 @@
     <Text Include="domain.txt">
       <Filter>Файлы ресурсов</Filter>
     </Text>
+    <Text Include="grid.txt">
+      <Filter>Файлы ресурсов</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="logger.h">

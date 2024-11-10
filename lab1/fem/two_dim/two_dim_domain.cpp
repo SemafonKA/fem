@@ -465,7 +465,7 @@ namespace fem::two_dim {
         for (size_t j = 0; j < this->Ky; j++) {
             for (size_t i = 0; i < this->Kx; i++) {
                 size_t ind = i + this->Kx * j;
-                oss << format("{} {} ", this->X[ind], this->Y[ind]);
+                oss << format("{:20.14e} {:20.14e} ", this->X[ind], this->Y[ind]);
             }
             oss << "\n";
         }
@@ -479,11 +479,11 @@ namespace fem::two_dim {
         oss << "\n";
 
         for (size_t i = 0; i < this->nx.size(); i++) {
-            oss << format("{} {} ", this->nx.at(i), this->cx.at(i));
+            oss << format("{} {:20.14e} ", this->nx.at(i), this->cx.at(i));
         }
         oss << "\n";
         for (size_t i = 0; i < this->ny.size(); i++) {
-            oss << format("{} {} ", this->ny.at(i), this->cy.at(i));
+            oss << format("{} {:20.14e} ", this->ny.at(i), this->cy.at(i));
         }
         oss << "\n\n";
 

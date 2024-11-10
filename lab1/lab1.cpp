@@ -1,15 +1,16 @@
+#include <fstream>
+
 #include "logger.h"
 #include "fem/includes/fem.h"
 
 using namespace std;
 using namespace fem::two_dim;
 
-
-
 int main() {
     setlocale(LC_ALL, "ru-RU");
 
     const auto domainFilepath = string("domain.txt");
+    const auto gridFilepath = string("grid.txt");
 
     logger::inFrameDebug("Debug mode enabled. Program may work slow and additional logs was output");
 
@@ -32,7 +33,13 @@ int main() {
     }
     catch (const std::runtime_error& e) {
         logger::error(format("There is some error while building grid: {}", e.what()));
+        return -1;
     }
+    auto ofile = ofstream();
+    ofile.open(gridFilepath);
+    ofile << grid.dump();
+    ofile.close();
+    logger::log(format("Grid info was written into file {}", gridFilepath));
 
     return 0;
 }

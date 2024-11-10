@@ -136,6 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="domain.txt" />
+    <Text Include="grid.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fem\includes\fem.h" />

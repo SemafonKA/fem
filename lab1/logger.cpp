@@ -26,6 +26,7 @@ namespace logger {
             std::cerr << termcolor::bright_blue;
             return;
 
+        case Colors::warning:
         case Colors::yellow:
             std::cout << termcolor::yellow;
             std::cerr << termcolor::yellow;
@@ -63,6 +64,19 @@ namespace logger {
         std::cout << std::format("[MSG : {}] - {}\n", time, str);
         resetColor();
     }
+
+    /**
+     * @brief Logs warning text into terminal with timestamp added
+     * @param str - text to log into terminal (without `\n` symbol)
+     * @param color - color to be outputted to the terminal
+     */
+    void warn(const std::string& str, Colors color) {
+        auto time = getCurrentTime();
+        setColor(color);
+        std::cerr << std::format("[WRN : {}] - {}\n", time, str);
+        resetColor();
+    }
+
 
     /**
      * @brief Logs error text into terminal with timestamp added

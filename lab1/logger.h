@@ -18,6 +18,7 @@ namespace logger {
         standard,
         success,
         error,
+        warning,
     };
 
     /**
@@ -26,6 +27,13 @@ namespace logger {
      * @param color - color to be outputted to the terminal
      */
     void log(const std::string& str, Colors color = Colors::standard);
+
+    /**
+     * @brief Logs warning text into terminal with timestamp added
+     * @param str - text to log into terminal (without `\n` symbol)
+     * @param color - color to be outputted to the terminal
+     */
+    void warn(const std::string& str, Colors color = Colors::warning);
 
     /**
      * @brief Logs error text into terminal with timestamp added

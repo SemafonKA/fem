@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.patches import Polygon
 
 
 class Point:
@@ -36,39 +37,38 @@ class Mesh:
 
 def plot_meshes(points: list[Point], meshes: list[Mesh]):
     _, axes = plt.subplots()
-    colors = ["green", "blue", "red", "yellow", "black"]
+    colors = ["#ffc107", "#1976d2", "#FF6347", "#FFD700", "#F5F5DC"]
+
+    blpoint = points[0]
+    trpoint = points[-1]
+    axes.set_xlim(blpoint.x, trpoint.x)
+    axes.set_ylim(blpoint.y, trpoint.y)
 
     for mesh in meshes:
-        # bottom edge
-        axes.plot(
-            [points[mesh.bl_point].x, points[mesh.br_point].x],
-            [points[mesh.bl_point].y, points[mesh.br_point].y],
-            color=colors[mesh.material_num - 1],
+        bl_point = points[mesh.bl_point]
+        br_point = points[mesh.br_point]
+        tl_point = points[mesh.tl_point]
+        tr_point = points[mesh.tr_point]
+
+        axes.add_patch(
+            Polygon(
+                [
+                    (bl_point.x, bl_point.y),
+                    (br_point.x, br_point.y),
+                    (tr_point.x, tr_point.y),
+                    (tl_point.x, tl_point.y),
+                ],
+                facecolor=colors[mesh.material_num - 1],
+                edgecolor="black",
+            )
         )
-        # top edge
-        axes.plot(
-            [points[mesh.tl_point].x, points[mesh.tr_point].x],
-            [points[mesh.tl_point].y, points[mesh.tr_point].y],
-            color=colors[mesh.material_num - 1],
-        )
-        # left edge
-        axes.plot(
-            [points[mesh.bl_point].x, points[mesh.tl_point].x],
-            [points[mesh.bl_point].y, points[mesh.tl_point].y],
-            color=colors[mesh.material_num - 1],
-        )
-        # right edge
-        axes.plot(
-            [points[mesh.br_point].x, points[mesh.tr_point].x],
-            [points[mesh.br_point].y, points[mesh.tr_point].y],
-            color=colors[mesh.material_num - 1],
-        )
+
     plt.show()
 
 
 def main():
     lines: list[str]
-    with open("grid.txt", "r") as file:
+    with open("lab1/grid.txt", "r") as file:
         lines = file.readlines()
 
     [kx, ky] = [int(x) for x in lines[0].split()]

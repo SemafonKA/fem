@@ -32,6 +32,9 @@ static auto getPointsCount(const Domain& domain) -> std::pair<size_t, size_t> {
         Ky_ext += el * (domain.splitX + 1);
     }
 
+    Kx_ext = Kx_ext == 1 ? 0 : Kx_ext;
+    Ky_ext = Ky_ext == 1 ? 0 : Ky_ext;
+
     return { Kx_ext, Ky_ext };
 }
 
@@ -90,14 +93,14 @@ static void fillPoints(const Domain& domain, fem::two_dim::GridQuadLinear& grid)
     for (size_t j = 0; j < domain.Ky - 1; j++) {
         size_t ii = 0; // X index for grid
         for (size_t i = 0; i < domain.Kx - 1; i++) {
-            array<size_t, 4> domainInd = {
+            const auto domainInd = array<size_t, 4> {
                 i + j * domain.Kx,           // Index of BL point
                 i + 1 + j * domain.Kx,       // Index of BR point
                 i + (j + 1) * domain.Kx,     // Index of TL point
                 i + 1 + (j + 1) * domain.Kx, // Index of TR point
             };
 
-            array<size_t, 4> gridInd = {
+            const auto gridInd = array<size_t, 4> {
                 ii + jj * grid.Kx, // Index of BL point
                 ii + (domain.nx[i] * (domain.splitX + 1)) + jj * grid.Kx, // Index of BR point
                 ii + (jj + domain.ny[j] * (domain.splitY + 1)) * grid.Kx, // Index of TL point

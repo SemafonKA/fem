@@ -95,16 +95,16 @@ static void fillPoints(const Domain& domain, fem::two_dim::GridQuadLinear& grid)
         for (size_t i = 0; i < domain.Kx - 1; i++) {
             const auto domainInd = array<size_t, 4> {
                 i + j * domain.Kx,           // Index of BL point
-                i + 1 + j * domain.Kx,       // Index of BR point
-                i + (j + 1) * domain.Kx,     // Index of TL point
-                i + 1 + (j + 1) * domain.Kx, // Index of TR point
+                    i + 1 + j * domain.Kx,       // Index of BR point
+                    i + (j + 1) * domain.Kx,     // Index of TL point
+                    i + 1 + (j + 1) * domain.Kx, // Index of TR point
             };
 
             const auto gridInd = array<size_t, 4> {
                 ii + jj * grid.Kx, // Index of BL point
-                ii + (domain.nx[i] * (domain.splitX + 1)) + jj * grid.Kx, // Index of BR point
-                ii + (jj + domain.ny[j] * (domain.splitY + 1)) * grid.Kx, // Index of TL point
-                ii + (domain.nx[i] * (domain.splitX + 1)) + (jj + domain.ny[j] * (domain.splitY + 1)) * grid.Kx, // Index of TR point
+                    ii + (domain.nx[i] * (domain.splitX + 1)) + jj * grid.Kx, // Index of BR point
+                    ii + (jj + domain.ny[j] * (domain.splitY + 1)) * grid.Kx, // Index of TL point
+                    ii + (domain.nx[i] * (domain.splitX + 1)) + (jj + domain.ny[j] * (domain.splitY + 1)) * grid.Kx, // Index of TR point
             };
 
             // Set value for corner points
@@ -188,6 +188,7 @@ static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& gr
         YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * (domain.splitY + 1);
     }
 
+    // TODO: Refactor this to lower complexity from O(N2) to O(N logN)
     for (const auto& sub : domain.subdomains) {
         bool isSubInUse = false;
         // Convert subdomain coordinate lines to grid coordinate lines
@@ -217,16 +218,31 @@ static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& gr
         if (isSubInUse) {
             grid.usedMaterials.push_back(sub.materialNum);
         }
+        else {
+            // TODO: Подумать, возможно ли такое вообще?
+            // Область задаётся по координатным линиям. При этом координатные линии должны задаваться корректно. 
+            // Единственное, что может пойти не так: некоторые области в итоге будут полностью перекрыты. 
+            // Вот эти области в идеале надо исключать
+        }
+    }
+}
+
+
+/**
+ * @brief Remove an unused meshes from grid (unused == doesn't contain any material)
+ */
+static void removeUnusedMeshes(fem::two_dim::GridQuadLinear& grid) {
+    auto& meshes = grid.meshes;
+
+    auto filtered_meshes = std::vector<fem::two_dim::MeshQuadLinear>();
+    filtered_meshes.reserve(meshes.size());
+    for (auto& mesh : meshes) {
+        if (mesh.materialNum != 0) {
+            filtered_meshes.push_back(std::move(mesh));
+        }
     }
 
-    // Additional checks
-    bool allHasMaterial = true;
-    for (const auto& mesh : grid.meshes) {
-        allHasMaterial &= mesh.materialNum != 0;
-    }
-    if (!allHasMaterial) {
-        logger::log("Some meshes has not material. Maybe you make some mistake with subdomains?", logger::Colors::warning);
-    }
+    grid.meshes = std::move(filtered_meshes);
 }
 
 
@@ -238,8 +254,6 @@ namespace fem::two_dim {
      */
     void GridQuadLinear::buildFrom(const Domain& domain) {
         auto timer = Timer(); // Debug timer
-
-        // TODO: Throw bad_domain exception if domain is bad
 
         // Get overall point count
         auto [countX, countY] = getPointsCount(domain);
@@ -264,6 +278,12 @@ namespace fem::two_dim {
         fillMaterials(domain, *this);
         timer.stop();
         logger::debug(format("GridQuadLinear::buildFrom: Materials was setted in {} ms", timer.elapsedMilliseconds()));
+
+        // Remove unused meshes with empty materials
+        timer.start();
+        removeUnusedMeshes(*this);
+        timer.stop();
+        logger::debug(format("GridQuadLinear::buildFrom: Unused meshes was removed in {} ms", timer.elapsedMilliseconds()));
     }
 
     /**

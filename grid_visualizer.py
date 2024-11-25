@@ -41,8 +41,18 @@ def plot_meshes(points: list[Point], meshes: list[Mesh]):
 
     blpoint = points[0]
     trpoint = points[-1]
-    axes.set_xlim(blpoint.x, trpoint.x)
-    axes.set_ylim(blpoint.y, trpoint.y)
+    step_x = trpoint.x - blpoint.x
+    step_y = trpoint.y - blpoint.y
+    axes.set_xlim(blpoint.x - step_x * 0.01, trpoint.x + step_x * 0.01)
+    axes.set_ylim(blpoint.y - step_y * 0.01, trpoint.y + step_y * 0.01)
+
+    xx = np.zeros((0,))
+    yy = np.zeros((0,))
+    for point in points:
+        xx = np.append(xx, [point.x])
+        yy = np.append(yy, [point.y])
+
+    axes.plot(xx, yy, linestyle="", marker="x", markeredgewidth=2, color="purple")
 
     for mesh in meshes:
         bl_point = points[mesh.bl_point]

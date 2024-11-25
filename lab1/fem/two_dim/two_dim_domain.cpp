@@ -12,15 +12,16 @@
 
 #undef max
 
-using std::ostringstream;
 using std::string;
 using std::format;
 using std::vector;
 using std::ifstream;
-using std::istringstream;
 using std::stringstream;
+using std::istringstream;
+using std::ostringstream;
 
 
+[[nodiscard]]
 static auto findMaxSize(const vector <double>& vec) -> size_t {
     size_t max = 0;
     for (const auto& el : vec) {
@@ -29,6 +30,7 @@ static auto findMaxSize(const vector <double>& vec) -> size_t {
     return max;
 }
 
+[[nodiscard]]
 static inline auto isComment(char c) -> bool {
     if (c == '*' || c == '/') {
         return true;
@@ -49,7 +51,8 @@ enum class States {
     END
 };
 
-string stateName(States state) {
+[[nodiscard]]
+auto stateName(States state) -> string {
     switch (state) {
     case States::coordinates_count:
         return "coordinates_count";
@@ -114,68 +117,46 @@ public:
             bool success = false;
 
             switch (state) {
-            case States::coordinates_count:
+            using enum States;
+            case coordinates_count:
                 success = readCoordinatesCount(token);
-                if (!success) {
-                    string error = format("[line {}, char {}] - Error when reading Kx Ky numbers", lineNumber, charNumber);
-                    throw std::runtime_error(error);
-                }
                 break;
 
-            case States::coordinates:
+            case coordinates:
                 success = readCoordinates(token);
-                if (!success) {
-                    string error = format("[line {}, char {}] - Error when reading coordinate lines", lineNumber, charNumber);
-                    throw std::runtime_error(error);
-                }
                 break;
 
-            case States::subdomains_count:
+            case subdomains_count:
                 success = readSubdomainCount(token);
-                if (!success) {
-                    string error = format("[line {}, char {}] - Error when reading No number", lineNumber, charNumber);
-                    throw std::runtime_error(error);
-                }
                 break;
 
-            case States::subdomains:
+            case subdomains:
                 success = readSubdomains(token);
-                if (!success) {
-                    string error = format("[line {}, char {}] - Error when reading subdomains", lineNumber, charNumber);
-                    throw std::runtime_error(error);
-                }
                 break;
 
-            case States::subdivision_x:
+            case subdivision_x:
                 success = readSubdivX(token);
-                if (!success) {
-                    string error = format("[line {}, char {}] - Error when reading X subdivisions", lineNumber, charNumber);
-                    throw std::runtime_error(error);
-                }
                 break;
 
-            case States::subdivision_y:
+            case subdivision_y:
                 success = readSubdivY(token);
-                if (!success) {
-                    string error = format("[line {}, char {}] - Error when reading Y subdivisions", lineNumber, charNumber);
-                    throw std::runtime_error(error);
-                }
                 break;
 
-            case States::splits:
+            case splits:
                 success = readSplits(token);
-                if (!success) {
-                    string error = format("[line {}, char {}] - Error when reading splits", lineNumber, charNumber);
-                    throw std::runtime_error(error);
-                }
                 break;
 
-            case States::END:
+            case END:
                 i = std::numeric_limits<size_t>::max();
                 break;
 
             default:
                 throw std::runtime_error("Not implemented branch");
+            }
+
+            if (!success) {
+                string error = format("[line {}, char {}] - {}", lineNumber, charNumber, this->errorMsg);
+                throw std::runtime_error(error);
             }
 
             if (success) {
@@ -197,8 +178,16 @@ private:
 
     fem::two_dim::Domain domain = {};
 
+    string errorMsg = ""; /// Contains error description if something goes wrong
+
+    /**
+     * @brief Read next token from [in] start by [position]. Token is a "word" separated by whitespace, line break or EOF
+     * @param in - string with content
+     * @param position - start position to extract token
+     * @return extracted token
+     */
     string readToken(const string& in, size_t position) const noexcept {
-        auto buf = stringstream();
+        auto buf = ostringstream();
         size_t pos = position;
         while (pos < in.size() && in[pos] != ' ' && in[pos] != '\n') {
             buf << in[pos];
@@ -207,9 +196,28 @@ private:
         return buf.str();
     }
 
+    /**
+     * @brief Only set [errorMsg] and returns false
+     * @param errText - text to set as error to
+     * @return false as always
+     */
+    [[nodiscard]]
+    inline bool error(const string& errText) noexcept {
+        this->errorMsg = errText;
+        return false;
+    }
+
     bool readCoordinatesCount(const string& token) {
         size_t k = 0;
-        if (auto buf = stringstream(token);  buf >> k) {
+
+        if (auto buf = istringstream(token);  buf >> k) {
+            if (k == 0) {
+                if (domain.Kx != 0) {
+                    return error("Ky value readed as zero, but must be greater than zero");
+                }
+                return error("Kx value readed as zero, but must be greater than zero");
+            }
+
             if (domain.Kx != 0) {
                 domain.Ky = k;
                 state = States::coordinates;
@@ -219,36 +227,81 @@ private:
             }
             return true;
         }
-        return false;
+
+        if (domain.Kx != 0) {
+            return error(format("Error while reading Ky number: an unsigned was expected, but '{}' was received", token));
+        }
+        return error(format("Error while reading Kx number: an unsigned was expected, but '{}' was received", token));
+    }
+
+
+    inline bool _is_y_normal() noexcept {
+        auto ylast = domain.Y.size() - 1;
+        if (ylast < domain.Kx) {
+            return true;
+        }
+
+        auto current = domain.Y.at(ylast);
+        auto previous = domain.Y.at(ylast - domain.Kx);
+        if (current <= previous) {
+            return this->error(format("Error while reading coodinate lines: Y value `{}` must be greater than `{}` in previous row", current, previous));
+        }
+        return true;
+    }
+
+    inline bool _is_x_normal() noexcept {
+        auto xlast = domain.X.size() - 1;
+        if (xlast % domain.Kx == 0) {
+            return true;
+        }
+
+        auto current = domain.X.at(xlast);
+        auto previous = domain.X.at(xlast - 1);
+        if (current <= previous) {
+            return this->error(format("Error while reading coodinate lines: X value `{}` must be greater than `{}` in previous column", current, previous));
+        }
+        return true;
     }
 
     bool readCoordinates(const string& token) {
         double val = 0;
 
-        if (auto buf = stringstream(token); buf >> val) {
+        if (auto buf = istringstream(token); buf >> val) {
             if (domain.X.size() > domain.Y.size()) {
                 domain.Y.push_back(val);
+                if (!_is_y_normal()) {
+                    return false;
+                }
             }
             else {
                 domain.X.push_back(val);
+                if (!_is_x_normal()) {
+                    return false;
+                }
             }
             if (domain.Y.size() == domain.Kx * domain.Ky) {
                 state = States::subdomains_count;
             }
             return true;
         }
-        return false;
+
+        return error(format("Error while reading coordinate lines: a float was expected, but '{}' was received", token));
     }
 
     bool readSubdomainCount(const string& token) {
         size_t size = 0;
 
-        if (auto buf = stringstream(token); buf >> size) {
+        if (auto buf = istringstream(token); buf >> size) {
+            if (size == 0) {
+                return error("Mx value readed as zero, but must be greater than zero");
+            }
+
             domain.subdomains.resize(size);
             state = States::subdomains;
             return true;
         }
-        return false;
+
+        return error(format("Error while reading Mx vakue: an unsigned was expected, but '{}' was received", token));
     }
 
     bool readSubdomains(const string& token) {
@@ -257,86 +310,138 @@ private:
         static auto num = 0;
 
         size_t k = 0;
-        if (auto buf = stringstream(token); buf >> k) {
+        if (auto buf = istringstream(token); buf >> k) {
             if (num == 0) {
+                if (k == 0) {
+                    return error("Error while reading material number: value must be greater than zero");
+                }
+
                 sd.materialNum = k;
                 num++;
             }
-            else if (num == 1) {
-                sd.xBeginNum = k;
-                num++;
-            }
-            else if (num == 2) {
-                sd.xEndNum = k;
-                num++;
-            }
-            else if (num == 3) {
-                sd.yBeginNum = k;
-                num++;
-            }
             else {
-                sd.yEndNum = k;
-                num = 0;
+                if (k == 0) {
+                    return error("Error while reading subdomain coordinate line number: number must be greater than zero");
+                }
 
-                subdomains.push_back(sd);
-                if (subdomains.size() == domain.subdomains.size()) {
-                    domain.subdomains = std::move(subdomains);
-                    state = States::subdivision_x;
+                if (num == 1) {
+                    if (k > domain.Kx) {
+                        return error(format("Error while reading nxb number: number less than or equivalent to {} was expected, but {} was received", domain.Kx, k));
+                    }
+
+                    sd.xBeginNum = k;
+                    num++;
+                }
+                else if (num == 2) {
+                    if (k > domain.Kx) {
+                        return error(format("Error while reading nxe number: number less than or equivalent to {} was expected, but {} was received", domain.Kx, k));
+                    }
+                    if (k <= sd.xBeginNum) {
+                        return error(format("Error while reading nxe number: nxe number ({}) must be greater than nxb number ({})", k, sd.xBeginNum));
+                    }
+
+                    sd.xEndNum = k;
+                    num++;
+                }
+                else if (num == 3) {
+                    if (k > domain.Ky) {
+                        return error(format("Error while reading nyb number: number less than or equivalent to {} was expected, but {} was received", domain.Ky, k));
+                    }
+
+                    sd.yBeginNum = k;
+                    num++;
+                }
+                else {
+                    if (k > domain.Ky) {
+                        return error(format("Error while reading nye number: number less than or equivalent to {} was expected, but {} was received", domain.Ky, k));
+                    }
+                    if (k <= sd.yBeginNum) {
+                        return error(format("Error while reading nye number: nye number ({}) must be greater than nyb number ({})", k, sd.yBeginNum));
+                    }
+
+                    sd.yEndNum = k;
+                    num = 0;
+
+                    subdomains.push_back(sd);
+                    if (subdomains.size() == domain.subdomains.size()) {
+                        domain.subdomains = std::move(subdomains);
+                        state = States::subdivision_x;
+                    }
                 }
             }
             return true;
         }
 
-        return false;
+        return error(format("Error while reading subdomains: unsigned was expected, but `{}` received", token));
     }
 
     bool readSubdivX(const string& token) {
-        auto buf = stringstream(token);
+        auto buf = istringstream(token);
         if (domain.nx.size() > domain.cx.size()) {
             if (double val; buf >> val) {
+                if (val <= 0.0) {
+                    return error(format("Error while reading X subdivisions: sparse coef must be greater than 0, but {} was received", val));
+                }
+
                 domain.cx.push_back(val);
                 if (domain.cx.size() == domain.Kx - 1) {
                     state = States::subdivision_y;
                 }
                 return true;
             }
+
+            return error(format("Error while reading X subdivisions: float was expected, but `{}` received", token));
         }
         else {
             if (size_t k; buf >> k) {
+                if (k == 0) {
+                    return error("Error while reading X subdivisions: number of subdivisions must be greater than zero");
+                }
+
                 domain.nx.push_back(k);
                 return true;
             }
-        }
 
-        return false;
+            return error(format("Error while reading X subdivisions: unsigned was expected, but `{}` received", token));
+        }
     }
 
     bool readSubdivY(const string& token) {
         auto buf = stringstream(token);
         if (domain.ny.size() > domain.cy.size()) {
             if (double val; buf >> val) {
+                if (val <= 0.0) {
+                    return error(format("Error while reading Y subdivisions: sparse coef must be greater than 0, but {} was received", val));
+                }
+
                 domain.cy.push_back(val);
                 if (domain.cy.size() == domain.Ky - 1) {
                     state = States::splits;
                 }
                 return true;
             }
+
+            return error(format("Error while reading Y subdivisions: float was expected, but `{}` received", token));
         }
         else {
             if (size_t k; buf >> k) {
+                if (k == 0) {
+                    return error("Error while reading Y subdivisions: number of subdivisions must be greater than zero");
+                }
+
                 domain.ny.push_back(k);
                 return true;
             }
         }
 
-        return false;
+        return error(format("Error while reading Y subdivisions: unsigned was expected, but `{}` received", token));
     }
 
     bool readSplits(const string& token) {
         static auto num = 0;
 
         size_t k = 0;
-        if (auto buf = stringstream(token); buf >> k) {
+        if (auto buf = istringstream(token); buf >> k) {
             if (num == 0) {
                 domain.splitX = k;
                 num = 1;
@@ -348,15 +453,17 @@ private:
             }
             return true;
         }
-        return false;
+
+        return error(format("Error while reading splits: unsigned was expected, but `{}` received", token));
     }
 };
 
+[[nodiscard]]
 static auto readDomainFromFile(const std::string& filepath) -> fem::two_dim::Domain {
     auto file = std::ifstream(filepath);
 
     if (!file.is_open()) {
-        const auto errorStr = format("Error opening file \"{}\".", filepath);
+        const auto errorStr = format("in function `readDomainFromFile`: Error opening file \"{}\".", filepath);
         logger::debug(errorStr);
         throw std::runtime_error(errorStr);
     }
@@ -370,7 +477,7 @@ static auto readDomainFromFile(const std::string& filepath) -> fem::two_dim::Dom
         return result;
     }
     catch (std::exception& e) {
-        logger::debug(e.what());
+        logger::debug(format("in function `readDomainFromFile`: {}", e.what()));
         throw std::runtime_error(e.what());
     }
 }

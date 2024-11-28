@@ -9,8 +9,8 @@ using namespace fem::two_dim;
 int main() {
     setlocale(LC_ALL, "ru-RU");
 
-    const auto domainFilepath = string("domain.txt");
-    const auto gridFilepath = string("grid.txt");
+    const auto domainFilepath = string("io/domain.txt");
+    const auto gridFilepath = string("io/grid.txt");
 
     logger::inFrameDebug("Debug mode enabled. Program may work slow and additional logs was output");
 

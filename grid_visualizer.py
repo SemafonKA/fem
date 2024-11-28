@@ -78,7 +78,7 @@ def plot_meshes(points: list[Point], meshes: list[Mesh]):
 
 def main():
     lines: list[str]
-    with open("lab1/grid.txt", "r") as file:
+    with open("fem_lib/io/grid.txt", "r") as file:
         lines = file.readlines()
 
     [kx, ky] = [int(x) for x in lines[0].split()]

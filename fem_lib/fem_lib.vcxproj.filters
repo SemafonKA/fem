@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="logger.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\two_dim\two_dim_domain.cpp">
+      <Filter>Исходные файлы\fem\two_dim</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\two_dim\two_dim_quads_linear_grid.cpp">
+      <Filter>Исходные файлы\fem\two_dim</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="logger.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\includes\fem.h">
+      <Filter>Файлы заголовков\fem\includes</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\two_dim\two_dim_domain.h">
+      <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\two_dim\two_dim_point.h">
+      <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\two_dim\two_dim_quads_linear_grid.h">
+      <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\two_dim\two_dim_quads_linear_mesh.h">
+      <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Исходные файлы">
+      <UniqueIdentifier>{9a3952c1-0e07-44b5-833a-b1afdfc785a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков">
+      <UniqueIdentifier>{e0fffe50-cc93-4f14-b069-2ae3a1137042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\fem">
+      <UniqueIdentifier>{64077394-c80f-401e-b969-bbd430fd6d75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов">
+      <UniqueIdentifier>{89e94268-a0f9-4c94-b93d-debebca13ef5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\fem\includes">
+      <UniqueIdentifier>{ffad12fc-f18a-4a87-a9da-ba2f8252332d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\fem\two_dim">
+      <UniqueIdentifier>{17d79163-a319-4c7e-afa5-3e51ea92d84b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\fem">
+      <UniqueIdentifier>{14e9e860-c9ca-45f2-91cb-cc704a2da57b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\fem\two_dim">
+      <UniqueIdentifier>{18b8ae1a-448a-4e9b-b2b7-d2ce110e825a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\examples">
+      <UniqueIdentifier>{79ce3d78-ff2d-4b45-917a-50a8285b7ce4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы ресурсов\io">
+      <UniqueIdentifier>{0f6ce97b-08f2-40d8-9f9c-d7c3a41de478}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="examples\область с 1 пз Иры.txt">
+      <Filter>Файлы ресурсов\examples</Filter>
+    </Text>
+    <Text Include="examples\область с моей защиты 1 пз.txt">
+      <Filter>Файлы ресурсов\examples</Filter>
+    </Text>
+    <Text Include="io\grid.txt">
+      <Filter>Файлы ресурсов\io</Filter>
+    </Text>
+    <Text Include="io\domain.txt">
+      <Filter>Файлы ресурсов\io</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

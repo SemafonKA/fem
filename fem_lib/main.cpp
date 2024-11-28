@@ -17,7 +17,7 @@ int main() {
     logger::log(format("Reading domain from file \"{}\"", domainFilepath));
     Domain domain;
     try {
-        // TODO: Проработать обработку ошибок при чтении домена
+        // TODO: РџСЂРѕСЂР°Р±РѕС‚Р°С‚СЊ РѕР±СЂР°Р±РѕС‚РєСѓ РѕС€РёР±РѕРє РїСЂРё С‡С‚РµРЅРёРё РґРѕРјРµРЅР°
         domain = Domain::readFromFile(domainFilepath);
     }
     catch (const std::runtime_error& e) {

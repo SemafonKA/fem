@@ -234,50 +234,15 @@ private:
         return error(format("Error while reading Kx number: an unsigned was expected, but '{}' was received", token));
     }
 
-
-    inline bool _is_y_normal() noexcept {
-        auto ylast = domain.Y.size() - 1;
-        if (ylast < domain.Kx) {
-            return true;
-        }
-
-        auto current = domain.Y.at(ylast);
-        auto previous = domain.Y.at(ylast - domain.Kx);
-        if (current <= previous) {
-            return this->error(format("Error while reading coodinate lines: Y value `{}` must be greater than `{}` in previous row", current, previous));
-        }
-        return true;
-    }
-
-    inline bool _is_x_normal() noexcept {
-        auto xlast = domain.X.size() - 1;
-        if (xlast % domain.Kx == 0) {
-            return true;
-        }
-
-        auto current = domain.X.at(xlast);
-        auto previous = domain.X.at(xlast - 1);
-        if (current <= previous) {
-            return this->error(format("Error while reading coodinate lines: X value `{}` must be greater than `{}` in previous column", current, previous));
-        }
-        return true;
-    }
-
     bool readCoordinates(const string& token) {
         double val = 0;
 
         if (auto buf = istringstream(token); buf >> val) {
             if (domain.X.size() > domain.Y.size()) {
                 domain.Y.push_back(val);
-                if (!_is_y_normal()) {
-                    return false;
-                }
             }
             else {
                 domain.X.push_back(val);
-                if (!_is_x_normal()) {
-                    return false;
-                }
             }
             if (domain.Y.size() == domain.Kx * domain.Ky) {
                 state = States::subdomains_count;

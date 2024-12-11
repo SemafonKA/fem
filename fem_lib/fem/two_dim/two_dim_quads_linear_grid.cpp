@@ -342,7 +342,10 @@ namespace fem::two_dim {
         oss << format("{}\n\n", meshes.size());
 
         for (const auto& mesh : meshes) {
-            oss << format("{:3}   {:05} {:05} {:05} {:05}\n", mesh.materialNum, mesh.indOfPoints[0], mesh.indOfPoints[1], mesh.indOfPoints[2], mesh.indOfPoints[3]);
+            oss << format("{:3}   {:05} {:05} {:05} {:05}   {:05} {:05} {:05} {:05}\n", 
+                mesh.materialNum, 
+                mesh.indOfPoints[0], mesh.indOfPoints[1], mesh.indOfPoints[2], mesh.indOfPoints[3], 
+                mesh.indOfEdges[0], mesh.indOfEdges[1], mesh.indOfEdges[2], mesh.indOfEdges[3]);
         }
 
         return oss.str();

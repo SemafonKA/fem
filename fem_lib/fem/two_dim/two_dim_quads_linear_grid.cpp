@@ -164,6 +164,25 @@ static void fillMeshes(fem::two_dim::GridQuadLinear& grid) {
 }
 
 /**
+ * @brief Enumerate edges for every mesh element
+ */
+static void fillEdgeNumbers(fem::two_dim::GridQuadLinear& grid) {
+    auto ve = grid.Kx; // count of vertical edges
+    auto he = ve - 1;  // count of horizontal edges
+    auto elementsInRow = he;
+
+    for (size_t i = 0; i < grid.meshes.size(); i++) {
+        size_t row = i / elementsInRow; // current row of mesh elements
+        auto& elem = grid.meshes.at(i);
+
+        elem.indOfEdges[0] = elem.indOfPoints[0] + he * row;
+        elem.indOfEdges[1] = elem.indOfEdges[0] + he;
+        elem.indOfEdges[2] = elem.indOfEdges[1] + 1;
+        elem.indOfEdges[3] = elem.indOfEdges[0] + he + ve;
+    }
+}
+
+/**
  * @brief Fill materials of meshes by subdomains
  */
 static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& grid) {
@@ -272,6 +291,12 @@ namespace fem::two_dim {
         fillMeshes(*this);
         timer.stop();
         logger::debug(format("GridQuadLinear::buildFrom: Meshes was computed in {} ms", timer.elapsedMilliseconds()));
+
+        // Fill edges
+        timer.start();
+        fillEdgeNumbers(*this);
+        timer.stop();
+        logger::debug(format("GridQuadLinear::buildFrom: Edges was enumerated in {} ms", timer.elapsedMilliseconds()));
 
         // Fill materials
         timer.start();

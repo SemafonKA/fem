@@ -42,5 +42,11 @@ int main() {
     ofile.close();
     logger::log(format("Grid info was written into file {}", gridFilepath));
 
+    for (const auto& el : grid.meshes) {
+        static auto ind = 1;
+        logger::debug(format("{} : {}", ind, el.toString()));
+        ind += 1;
+    }
+
     return 0;
 }

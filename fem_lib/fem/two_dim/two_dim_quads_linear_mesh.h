@@ -12,7 +12,7 @@ namespace fem::two_dim {
 
         inline auto toString() const -> std::string {
             return std::format(
-                "[ material: {}, points: [{}, {}, {}, {}], edges: [{}, {}, {}, {}] ]",
+                "[ material: {}, points: [{:5}, {:5}, {:5}, {:5}], edges: [{:5}, {:5}, {:5}, {:5}] ]",
                 materialNum,
                 indOfPoints[0],
                 indOfPoints[1],

@@ -24,3 +24,8 @@
 
 /// GRIDS
 #include "../two_dim/two_dim_quads_linear_grid.h"
+
+
+
+/// SOLVERS
+#include "../two_dim/two_dim_quads_linear_solver.h"

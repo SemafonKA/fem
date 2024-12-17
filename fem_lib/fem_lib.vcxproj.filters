@@ -13,6 +13,18 @@
     <ClCompile Include="fem\two_dim\two_dim_quads_linear_grid.cpp">
       <Filter>Исходные файлы\fem\two_dim</Filter>
     </ClCompile>
+    <ClCompile Include="three_steppers\Resourses\IterSolvers.cpp">
+      <Filter>Исходные файлы\three_steppers\Resourses</Filter>
+    </ClCompile>
+    <ClCompile Include="three_steppers\Resourses\LU.cpp">
+      <Filter>Исходные файлы\three_steppers\Resourses</Filter>
+    </ClCompile>
+    <ClCompile Include="three_steppers\Resourses\SparseMatrix.cpp">
+      <Filter>Исходные файлы\three_steppers\Resourses</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\two_dim\two_dim_quads_linear_solver.cpp">
+      <Filter>Исходные файлы\fem\two_dim</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="logger.h">
@@ -34,6 +46,21 @@
       <Filter>Файлы заголовков\fem\two_dim</Filter>
     </ClInclude>
     <ClInclude Include="fem\two_dim\two_dim_quads_linear_mesh.h">
+      <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="gaussian_quadrature\gaussian_quadrature.h">
+      <Filter>Файлы заголовков\gaussian_quadrature</Filter>
+    </ClInclude>
+    <ClInclude Include="three_steppers\Headers\IterSolvers.h">
+      <Filter>Файлы заголовков\three_steppers\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="three_steppers\Headers\LU.h">
+      <Filter>Файлы заголовков\three_steppers\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="three_steppers\Headers\SparseMatrix.h">
+      <Filter>Файлы заголовков\three_steppers\Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\two_dim\two_dim_quads_linear_solver.h">
       <Filter>Файлы заголовков\fem\two_dim</Filter>
     </ClInclude>
   </ItemGroup>
@@ -67,6 +94,21 @@
     </Filter>
     <Filter Include="Файлы ресурсов\io">
       <UniqueIdentifier>{0f6ce97b-08f2-40d8-9f9c-d7c3a41de478}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\gaussian_quadrature">
+      <UniqueIdentifier>{c5f5d665-0711-4425-902c-10e5fe6447c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\three_steppers">
+      <UniqueIdentifier>{13eb686e-4606-4867-a359-34998d15c7a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\three_steppers\Headers">
+      <UniqueIdentifier>{89488e07-5182-4b68-923d-83a0eae3a4ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\three_steppers">
+      <UniqueIdentifier>{dc0e6801-9cdc-4e47-94cf-183ec0cd2059}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\three_steppers\Resourses">
+      <UniqueIdentifier>{96957fbc-6160-4f4c-b685-a159989aef0c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -134,8 +134,12 @@
   <ItemGroup>
     <ClCompile Include="fem\two_dim\two_dim_domain.cpp" />
     <ClCompile Include="fem\two_dim\two_dim_quads_linear_grid.cpp" />
+    <ClCompile Include="fem\two_dim\two_dim_quads_linear_solver.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="logger.cpp" />
+    <ClCompile Include="three_steppers\Resourses\IterSolvers.cpp" />
+    <ClCompile Include="three_steppers\Resourses\LU.cpp" />
+    <ClCompile Include="three_steppers\Resourses\SparseMatrix.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fem\includes\fem.h" />
@@ -143,7 +147,12 @@
     <ClInclude Include="fem\two_dim\two_dim_point.h" />
     <ClInclude Include="fem\two_dim\two_dim_quads_linear_grid.h" />
     <ClInclude Include="fem\two_dim\two_dim_quads_linear_mesh.h" />
+    <ClInclude Include="fem\two_dim\two_dim_quads_linear_solver.h" />
+    <ClInclude Include="gaussian_quadrature\gaussian_quadrature.h" />
     <ClInclude Include="logger.h" />
+    <ClInclude Include="three_steppers\Headers\IterSolvers.h" />
+    <ClInclude Include="three_steppers\Headers\LU.h" />
+    <ClInclude Include="three_steppers\Headers\SparseMatrix.h" />
     <ClInclude Include="timer.h" />
   </ItemGroup>
   <ItemGroup>

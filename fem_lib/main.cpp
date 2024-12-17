@@ -87,7 +87,7 @@ int main() {
     }
 
     for (size_t i = 0; i < grid.points.size(); i++) {
-        auto point = grid.points[i];
+        const auto& point = grid.points[i];
         auto qi = q[i];
         auto ui = u(point.x, point.y);
         auto p_abs = std::abs(qi - ui);
@@ -102,6 +102,40 @@ int main() {
         }
     }
 
+    cout << oss.str() << "\n";
+    relative = absolute / relative;
+    cout << format("Absolute error: {:8.4e}\n", absolute);
+    cout << format("Relative error: {:8.4e}\n", relative);
+
+    logger::inFrame("Test points");
+    std::vector<Point> testPoints = {
+        {1, 1},
+        {1.25, 1.5},
+        {5.2, 1.444},
+        {3.2, 2.5},
+        {2.8, 3.4}
+    };
+
+    oss.str("");
+    relative = absolute = 0;
+
+    oss << format("| {:^4} | {:^22} | {:^22} | {:^22} | {:^22} | {:^22} | {:^22} |\n",
+        "#", "X", "Y", "q_i", "u_i", "abs", "rel");
+    oss << format("| {0:^4} | {0:^22} | {0:^22} | {0:^22} | {0:^22} | {0:^22} | {0:^22} |\n", ":-:");
+
+    for (size_t i = 0; i < testPoints.size(); i++) {
+        const auto& point = testPoints[i];
+        auto qi = solver.value(point);
+        auto ui = u(point.x, point.y);
+        auto p_abs = std::abs(qi - ui);
+        auto p_rel = p_abs / std::abs(ui);
+
+        absolute += p_abs;
+        relative += std::abs(ui); // Накапливаем погрешность
+
+        oss << format("| {:^4} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} |\n",
+            i + 1, point.x, point.y, qi, ui, p_abs, p_rel);
+    }
     cout << oss.str() << "\n";
     relative = absolute / relative;
     cout << format("Absolute error: {:8.4e}\n", absolute);

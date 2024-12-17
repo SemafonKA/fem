@@ -15,7 +15,6 @@ using namespace std;
  * @param eta - in range [0;1]
  */
 static inline auto x(double xi, double eta, const array<fem::two_dim::Point, 4>& points) -> double {
-    // TODO: Delete if unused
     double res = 0.0;
     res += (1 - xi) * (1 - eta) * points[0].x;
     res += xi * (1 - eta) * points[1].x;
@@ -29,7 +28,6 @@ static inline auto x(double xi, double eta, const array<fem::two_dim::Point, 4>&
  * @param eta - in range [0;1]
  */
 static inline auto y(double xi, double eta, const array<fem::two_dim::Point, 4>& points) -> double {
-    // TODO: Delete if unused
     double res = 0.0;
     res += (1 - xi) * (1 - eta) * points[0].y;
     res += xi * (1 - eta) * points[1].y;
@@ -121,6 +119,23 @@ static inline auto J(double xi, double eta, const array<fem::two_dim::Point, 4>&
 
 namespace fem::two_dim {
 
+    // Function to calculate the area of a triangle given its vertices
+    static auto area(const Point& A, const Point& B, const Point& C) -> double {
+        return 0.5 * abs((B.x - A.x) * (C.y - A.y) - (C.x - A.x) * (B.y - A.y));
+    }
+
+    // Function to check if a point is inside a triangle
+    static auto isInTriangle(const Point& P, const Point& A, const Point& B, const Point& C) -> bool {
+        double areaABC = area(A, B, C);
+        double areaPAB = area(P, A, B);
+        double areaPBC = area(P, B, C);
+        double areaPCA = area(P, C, A);
+
+        // If the sum of the areas of sub-triangles equals the area of the main triangle,
+        // then the point is inside the triangle.
+        return (abs(areaABC - (areaPAB + areaPBC + areaPCA)) < 1e-9);
+    }
+
     static inline void addLocalMatrixToGlobal(const MeshQuadLinear& rect, SparseMatrix& globalMat, const LocalQuadsLinearMat& localMat) {
         const auto& elems = rect.indOfPoints;
 
@@ -152,6 +167,99 @@ namespace fem::two_dim {
         }
     }
 
+    auto SolverQuadsLinear::value(Point p) -> double {
+        auto mesh_ind = findFinite(p);
+        if (mesh_ind == _grid.meshes.size()) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        const auto& mesh = _grid.meshes.at(mesh_ind);
+
+        const array<Point, 4> mp = {
+            _grid.points[mesh.indOfPoints[0]],
+            _grid.points[mesh.indOfPoints[1]],
+            _grid.points[mesh.indOfPoints[2]],
+            _grid.points[mesh.indOfPoints[3]],
+        };
+        std::array<double, 4> x = {
+            mp[0].x, mp[1].x, mp[2].x, mp[3].x
+        };
+        std::array<double, 4> y = {
+            mp[0].y, mp[1].y, mp[2].y, mp[3].y
+        };
+
+        const array<double, 3> alpha = {
+            (x[1] - x[0])* (y[2] - y[0]) - (y[1] - y[0]) * (x[2] - x[0]),
+            (x[1] - x[0])* (y[3] - y[2]) - (y[1] - y[0]) * (x[3] - x[2]),
+            (y[2] - y[0])* (x[3] - x[1]) - (x[2] - x[0]) * (y[3] - y[1])
+        };
+        const array<double, 7> beta = {
+            0,
+            x[2] - x[0],
+            x[1] - x[0],
+            y[2] - y[0],
+            y[1] - y[0],
+            x[0] - x[1] - x[2] + x[3],
+            y[0] - y[1] - y[2] + y[3],
+        };
+        
+        double w = beta[6] * (p.x - x[0]) - beta[5] * (p.y - y[0]);
+
+        double xi = 0.0;
+        double eta = 0.0;
+
+        if (abs(alpha[1]) < 1e-10 && abs(alpha[2]) < 1e-10) {
+            xi = beta[3] * (p.x - x[0]) - beta[1] * (p.y - y[0]);
+            xi /= beta[2] * beta[3] - beta[1] * beta[4];
+
+            eta = beta[2] * (p.y - y[0]) - beta[4] * (p.x - x[0]);
+            eta /= beta[2] * beta[3] - beta[1] * beta[4];
+        }
+        else if (abs(alpha[1]) < 1e-10) {
+            xi = alpha[2] * (p.x - x[0]) + beta[1] * w;
+            xi /= alpha[2] * beta[2] - beta[5] * w;
+
+            eta = -w / alpha[2];
+        }
+        else if (abs(alpha[2]) < 1e-10) {
+            xi = w / alpha[1];
+
+            eta = alpha[1] * (p.y - y[0]) - beta[4] * w;
+            eta /= alpha[1] * beta[3] + beta[6] * w;
+        }
+        else {
+            double a = beta[5] * alpha[2];
+            double b = alpha[2] * beta[2] + alpha[1] * beta[1] + beta[5] * w;
+            double c = alpha[1] * (x[0] - p.x) + beta[2] * w;
+
+            double discriminant = b * b - 4 * a * c;
+            if (discriminant < 0) {
+                return std::numeric_limits<double>::quiet_NaN(); // No real roots
+            }
+
+            // Calculate the two possible solutions
+            double sqrtDiscriminant = std::sqrt(discriminant);
+            double eta1 = (-b + sqrtDiscriminant) / (2 * a);
+            double eta2 = (-b - sqrtDiscriminant) / (2 * a);
+            double xi1 = alpha[2] / alpha[1] * eta1 + w / alpha[1];
+            double xi2 = alpha[2] / alpha[1] * eta2 + w / alpha[1];
+
+            if (0 <= eta1 && eta1 <= 1 && 0 <= xi1 && xi1 <= 1) {
+                xi = xi1;
+                eta = eta1;
+            }
+            else {
+                xi = xi2;
+                eta = eta2;
+            }
+        }
+
+        double res = 0.0;
+        for (size_t i = 0; i < 4; i++) {
+            res += phi(xi, eta, i) * _solve.at(mesh.indOfPoints[i]);
+        }
+        return res;
+    }
+
     [[nodiscard]]
     auto SolverQuadsLinear::solveStatic() -> std::vector<double> {
         Timer global_timer;
@@ -177,12 +285,12 @@ namespace fem::two_dim {
 
         _global_mat = _global_M + _global_G;
 
-        timer.start();        
+        timer.start();
         includeS2();
         timer.stop();
         logger::debug(format("SolverQuadsLinear::solveStatic - s2 was computed by {} ms", timer.elapsedMilliseconds()));
 
-        timer.start();        
+        timer.start();
         includeS1();
         timer.stop();
         logger::debug(format("SolverQuadsLinear::solveStatic - s1 was computed by {} ms", timer.elapsedMilliseconds()));
@@ -249,7 +357,6 @@ namespace fem::two_dim {
         _global_mat.ggl.resize(_global_mat.jg.size());
         _global_mat.ggu.resize(_global_mat.jg.size());
     }
-
 
     auto SolverQuadsLinear::getLocalG(const MeshQuadLinear& mesh) -> LocalQuadsLinearMat {
         LocalQuadsLinearMat g = {};
@@ -322,7 +429,7 @@ namespace fem::two_dim {
             auto _x = x(xi, eta, p);
             auto _y = y(xi, eta, p);
             double result = addGamma ? _funcs.gamma(_x, _y, mesh.materialNum) : 1;
-            result *= phi(xi, eta, i)* phi(xi, eta, j);
+            result *= phi(xi, eta, i) * phi(xi, eta, j);
             result *= std::abs(J(xi, eta, p));
             return result;
             };
@@ -374,7 +481,7 @@ namespace fem::two_dim {
         //    }
         //    b[i] = sum;
         //}
-         
+
         return b;
     }
 
@@ -468,5 +575,24 @@ namespace fem::two_dim {
                 }
             }
         }
+    }
+
+    auto SolverQuadsLinear::findFinite(const Point& p) const -> size_t {
+        // Iterate through all meshes in the grid
+        for (size_t i = 0; i < _grid.meshes.size(); ++i) {
+            const auto& mesh = _grid.meshes[i];
+
+            // Check if the point lies inside the mesh
+            Point p1 = _grid.points[mesh.indOfPoints[0]];
+            Point p2 = _grid.points[mesh.indOfPoints[1]];
+            Point p3 = _grid.points[mesh.indOfPoints[2]];
+            Point p4 = _grid.points[mesh.indOfPoints[3]];
+
+            if (isInTriangle(p, p1, p2, p3) || isInTriangle(p, p1, p3, p4)) {
+                return i; // Return the index of the mesh
+            }
+        }
+
+        return _grid.meshes.size(); // Return the size of the meshes vector if no mesh contains the point
     }
 }

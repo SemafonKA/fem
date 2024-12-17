@@ -31,6 +31,8 @@ namespace fem::two_dim {
         [[nodiscard]]
         auto solveStatic() -> std::vector<double>;
 
+        [[nodiscard]]
+        auto value(Point p) -> double;
 
     private:
         SparseMatrix _global_mat;
@@ -51,6 +53,8 @@ namespace fem::two_dim {
         
         void includeS2();
         void includeS1();
+
+        auto findFinite(const Point& p) const -> size_t;
     };
 
 }

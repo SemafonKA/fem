@@ -170,6 +170,7 @@ namespace fem::two_dim {
     auto SolverQuadsLinear::value(Point p) -> double {
         auto mesh_ind = findFinite(p);
         if (mesh_ind == _grid.meshes.size()) {
+            logger::error(format("Point ({}, {}) is out of domain", p.x, p.y));
             return std::numeric_limits<double>::quiet_NaN();
         }
         const auto& mesh = _grid.meshes.at(mesh_ind);
@@ -233,6 +234,7 @@ namespace fem::two_dim {
 
             double discriminant = b * b - 4 * a * c;
             if (discriminant < 0) {
+                logger::error(format("Discriminant is less than zero: a = {}, b = {}, c = {}, for Point ({}, {})", a, b, c, p.x, p.y));
                 return std::numeric_limits<double>::quiet_NaN(); // No real roots
             }
 
@@ -588,7 +590,7 @@ namespace fem::two_dim {
             Point p3 = _grid.points[mesh.indOfPoints[2]];
             Point p4 = _grid.points[mesh.indOfPoints[3]];
 
-            if (isInTriangle(p, p1, p2, p3) || isInTriangle(p, p1, p3, p4)) {
+            if (isInTriangle(p, p1, p2, p3) || isInTriangle(p, p2, p3, p4)) {
                 return i; // Return the index of the mesh
             }
         }

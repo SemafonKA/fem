@@ -63,6 +63,11 @@ int main() {
         logger::error(format("There is some error while building grid: {}", e.what()));
         return -1;
     }
+    auto ofile = ofstream();
+    ofile.open(gridFilepath);
+    ofile << grid.dump();
+    ofile.close();
+    logger::log(format("Grid info was written into file {}", gridFilepath));
     
     auto funcs = DomainFunctionsQuadsLinear();
     funcs.gamma = gamma;

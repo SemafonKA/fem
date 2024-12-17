@@ -45,6 +45,8 @@ enum class States {
     coordinates,
     subdomains_count,
     subdomains,
+    edges_count,
+    edges,
     subdivision_x,
     subdivision_y,
     splits,
@@ -54,28 +56,35 @@ enum class States {
 [[nodiscard]]
 auto stateName(States state) -> string {
     switch (state) {
-    case States::coordinates_count:
+    using enum States;
+    case coordinates_count:
         return "coordinates_count";
 
-    case States::coordinates:
+    case coordinates:
         return "coordinates";
 
-    case States::subdomains_count:
+    case subdomains_count:
         return "subdomains_count";
 
-    case States::subdomains:
+    case subdomains:
         return "subdomains";
 
-    case States::subdivision_x:
+    case edges_count:
+        return "edges_count";
+
+    case edges:
+        return "edges";
+
+    case subdivision_x:
         return "subdivision_x";
 
-    case States::subdivision_y:
+    case subdivision_y:
         return "subdivision_y";
 
-    case States::splits:
+    case splits:
         return "splits";
 
-    case States::END:
+    case END:
         return "END";
 
     default:
@@ -134,6 +143,14 @@ public:
                 success = readSubdomains(token);
                 break;
 
+            case edges_count:
+                success = readEdgesCount(token);
+                break;
+
+            case edges:
+                success = readEdges(token);
+                break;
+
             case subdivision_x:
                 success = readSubdivX(token);
                 break;
@@ -179,6 +196,8 @@ private:
     fem::two_dim::Domain domain = {};
 
     string errorMsg = ""; /// Contains error description if something goes wrong
+
+    size_t edges_size = 0;
 
     /**
      * @brief Read next token from [in] start by [position]. Token is a "word" separated by whitespace, line break or EOF
@@ -330,6 +349,135 @@ private:
                     subdomains.push_back(sd);
                     if (subdomains.size() == domain.subdomains.size()) {
                         domain.subdomains = std::move(subdomains);
+                        state = States::edges_count;
+                    }
+                }
+            }
+            return true;
+        }
+
+        return error(format("Error while reading subdomains: unsigned was expected, but `{}` received", token));
+    }
+
+    bool readEdgesCount(const string& token) {
+        size_t size = 0;
+
+        if (auto buf = istringstream(token); buf >> size) {
+            if (size == 0) {
+                return error("Cx value readed as zero, but must be greater than zero");
+            }
+
+            edges_size = size;
+            state = States::edges;
+            return true;
+        }
+
+        return error(format("Error while reading Cx vakue: an unsigned was expected, but '{}' was received", token));
+    }
+
+    bool readEdges(const string& token) {
+        static auto s1_edges = vector<fem::two_dim::S1Edge>();
+        static auto s2_edges = vector<fem::two_dim::S2Edge>();
+        static size_t num = 0;
+        static size_t sType = 1;
+
+        static size_t nxb = 0;
+        static size_t nxe = 0;
+        static size_t nyb = 0;
+        static size_t nye = 0;
+        static size_t nc = 0;
+
+        size_t k = 0;
+        if (auto buf = istringstream(token); buf >> k) {
+            if (num == 0) {
+                if (k != 1 && k != 2) {
+                    return error("Error while reading edge type: value must be '1' or '2'");
+                }
+
+                sType = k;
+                num++;
+            }
+            else {
+                if (k == 0) {
+                    return error("Error while reading edge coordinate line number: number must be greater than zero");
+                }
+
+                if (num == 1) {
+                    if (k > domain.Kx) {
+                        return error(format("Error while reading nxb number: number less than or equivalent to {} was expected, but {} was received", domain.Kx, k));
+                    }
+
+                    nxb = k;
+                    num++;
+                }
+                else if (num == 2) {
+                    if (k > domain.Kx) {
+                        return error(format("Error while reading nxe number: number less than or equivalent to {} was expected, but {} was received", domain.Kx, k));
+                    }
+                    if (k < nxb) {
+                        return error(format("Error while reading nxe number: nxe number ({}) must be greater than nxb number ({})", k, nxb));
+                    }
+
+                    nxe = k;
+                    num++;
+                }
+                else if (num == 3) {
+                    if (k > domain.Ky) {
+                        return error(format("Error while reading nyb number: number less than or equivalent to {} was expected, but {} was received", domain.Ky, k));
+                    }
+
+                    nyb = k;
+                    num++;
+                }
+                else if (num == 4) {
+                    if (k > domain.Ky) {
+                        return error(format("Error while reading nye number: number less than or equivalent to {} was expected, but {} was received", domain.Ky, k));
+                    }
+                    if (k < nyb) {
+                        return error(format("Error while reading nye number: nye number ({}) must be greater than nyb number ({})", k, nyb));
+                    }
+
+                    nye = k;
+                    num++;
+                }
+                else {
+                    nc = k;
+                    num = 0;
+
+                    // Checks that edge condition setted up across one line and not many lines
+                    if (nxb != nxe && nyb != nye) {
+                        return error(format(
+                            "Error while reading edge condition: edge condition must be setted throw one coordinate line.\n"
+                            "                                        If [nxb] != [nxe], then [nyb] must be equal to [nye]. \n"
+                            "                                        And if [nyb] != [nye], then [nxb] must be equal to [nxe]."
+                        ));
+                    }
+
+                    if (sType == 1) {
+                        auto s1 = fem::two_dim::S1Edge();
+                        s1.xBeginNum = nxb;
+                        s1.xEndNum = nxe;
+                        s1.yBeginNum = nyb;
+                        s1.yEndNum = nye;
+                        s1.funcNum = nc;
+
+                        s1_edges.push_back(s1);
+                    }
+                    else {
+                        auto s2 = fem::two_dim::S2Edge();
+                        s2.xBeginNum = nxb;
+                        s2.xEndNum = nxe;
+                        s2.yBeginNum = nyb;
+                        s2.yEndNum = nye;
+                        s2.funcNum = nc;
+
+                        s2_edges.push_back(s2);
+                    }
+
+                    if (s1_edges.size() + s2_edges.size() == edges_size) {
+                        domain.s1_edges = std::move(s1_edges);
+                        domain.s2_edges = std::move(s2_edges);
+
                         state = States::subdivision_x;
                     }
                 }
@@ -505,6 +653,27 @@ namespace fem::two_dim {
         oss << "// nye[i] - number Y-coordinate line of end of the i'th subdomain (starts from 1)\n";
         oss << "\n\n";
 
+        oss << format("// Count of edge conditions\n{}\n\n", this->s1_edges.size() + this->s2_edges.size());
+        oss << "// Edge conditions describes in format `t[i] nxb[i] nxe[i] nyb[i] nye[i] nc[i]` (**)\n";
+
+        for (const auto& s1 : this->s1_edges) {
+            oss << format("{:<3} {:>4} {:<4} {:>4} {:<4} {:>3}\n", 1, s1.xBeginNum, s1.xEndNum, s1.yBeginNum, s1.yEndNum, s1.funcNum);
+        }
+
+        for (const auto& s2 : this->s2_edges) {
+            oss << format("{:<3} {:>4} {:<4} {:>4} {:<4} {:>3}\n", 2, s2.xBeginNum, s2.xEndNum, s2.yBeginNum, s2.yEndNum, s2.funcNum);
+        }
+        oss << "\n";
+        oss << "// (*)\n";
+        oss << "// t[i]   - type of the edge condition (1 or 2)\n";
+        oss << "// nxb[i] - number X-coordinate line of begin of the i'th subdomain (starts from 1)\n";
+        oss << "// nxe[i] - number X-coordinate line of end of the i'th subdomain (starts from 1)\n";
+        oss << "// nyb[i] - number Y-coordinate line of begin of the i'th subdomain (starts from 1)\n";
+        oss << "// nye[i] - number Y-coordinate line of end of the i'th subdomain (starts from 1)\n";
+        oss << "// nc[i]  - number of the edge condition function (related to function nums in program)\n";
+        oss << "\n\n";
+
+
         oss << "**********************\n";
         oss << "** Grid description **\n";
         oss << "**********************\n\n";
@@ -547,6 +716,14 @@ namespace fem::two_dim {
 
         for (const auto& sd : this->subdomains) {
             oss << format("{} {} {} {} {}\n", sd.materialNum, sd.xBeginNum, sd.xEndNum, sd.yBeginNum, sd.yEndNum);
+        }
+        oss << "\n";
+
+        for (const auto& s1 : this->s1_edges) {
+            oss << format("{} {} {} {} {} {}\n", 1, s1.xBeginNum, s1.xEndNum, s1.yBeginNum, s1.yEndNum, s1.funcNum);
+        }
+        for (const auto& s2 : this->s2_edges) {
+            oss << format("{} {} {} {} {} {}\n", 2, s2.xBeginNum, s2.xEndNum, s2.yBeginNum, s2.yEndNum, s2.funcNum);
         }
         oss << "\n";
 

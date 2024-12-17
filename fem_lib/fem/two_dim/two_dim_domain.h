@@ -12,6 +12,22 @@ namespace fem::two_dim {
         size_t yEndNum{ 0 };     /// Number of top Y coordinate line (starts with 1) 
     };
 
+    struct S1Edge {
+        size_t xBeginNum{ 0 }; /// Number of left X coordinate line (starts with 1)
+        size_t xEndNum{ 0 };   /// Number of right X coordinate line (starts with 1)
+        size_t yBeginNum{ 0 }; /// Number of bottom Y coordinate line (starts with 1) 
+        size_t yEndNum{ 0 };   /// Number of top Y coordinate line (starts with 1) 
+        size_t funcNum{ 0 };   /// Number of function for this edge condition (starts with 1)
+    };
+
+    struct S2Edge {
+        size_t xBeginNum{ 0 }; /// Number of left X coordinate line (starts with 1)
+        size_t xEndNum{ 0 };   /// Number of right X coordinate line (starts with 1)
+        size_t yBeginNum{ 0 }; /// Number of bottom Y coordinate line (starts with 1) 
+        size_t yEndNum{ 0 };   /// Number of top Y coordinate line (starts with 1) 
+        size_t funcNum{ 0 };   /// Number of function for this edge condition (starts with 1)
+    };
+
     /**
      * @brief Description of domain of selected field
      */
@@ -23,6 +39,9 @@ namespace fem::two_dim {
         std::vector<double> Y{}; /// Vector of Y coordinate lines of Kx*Ky size
 
         std::vector<Subdomain> subdomains{}; /// Subdomains of current domain
+
+        std::vector<S1Edge> s1_edges{}; /// S1 Edge conditions
+        std::vector<S2Edge> s2_edges{}; /// S2 Edge conditions
 
         std::vector<size_t> nx{}; /// Count of subdivides for X coordinate lines of (Kx*Ky) - 1 size
         std::vector<double> cx{}; /// Sparse coefficients for X coordinate lines of (Kx*Ky) - 1 size

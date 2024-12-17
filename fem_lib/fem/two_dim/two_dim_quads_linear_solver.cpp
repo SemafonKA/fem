@@ -348,32 +348,32 @@ namespace fem::two_dim {
             _grid.points[mesh.indOfPoints[3]],
         };
 
-        //size_t i = 0;
+        size_t i = 0;
 
-        //auto int_func = [&](double xi, double eta) {
-        //    double result = 1;
-        //    auto _x = x(xi, eta, p);
-        //    auto _y = y(xi, eta, p);
-        //    result *= phi(xi, eta, i);
-        //    result *= std::abs(J(xi, eta, p)) * _funcs.func(_x, _y, mesh.materialNum);
-        //    return result;
-        //    };
+        auto int_func = [&](double xi, double eta) {
+            double result = 1;
+            auto _x = x(xi, eta, p);
+            auto _y = y(xi, eta, p);
+            result *= phi(xi, eta, i);
+            result *= std::abs(J(xi, eta, p)) * _funcs.func(_x, _y, mesh.materialNum);
+            return result;
+            };
 
-        //auto int_solver = Gaussian_4p::TwoDimentionalSolver(0, 1, 0, 1, int_func);
+        auto int_solver = Gaussian_4p::TwoDimentionalSolver(0, 1, 0, 1, int_func);
 
-        //for (i = 0; i < 4; i++) {
-        //    b[i] = int_solver.compute();   // [i] variable are linked to [int_solver] function
-        //}
+        for (i = 0; i < 4; i++) {
+            b[i] = int_solver.compute();   // [i] variable are linked to [int_solver] function
+        }
 
         // if ^ not work:
-        auto m = getLocalM(mesh, false);
-        for (size_t i = 0; i < 4; i++) {
-            double sum = 0.0;
-            for (size_t j = 0; j < 4; j++) {
-                sum += m[i][j] * _funcs.func(p[j].x, p[j].y, mesh.materialNum);
-            }
-            b[i] = sum;
-        }
+        //auto m = getLocalM(mesh, false);
+        //for (size_t i = 0; i < 4; i++) {
+        //    double sum = 0.0;
+        //    for (size_t j = 0; j < 4; j++) {
+        //        sum += m[i][j] * _funcs.func(p[j].x, p[j].y, mesh.materialNum);
+        //    }
+        //    b[i] = sum;
+        //}
          
         return b;
     }

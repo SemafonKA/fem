@@ -34,6 +34,14 @@ namespace fem::two_dim {
         [[nodiscard]]
         auto value(Point p) -> double;
 
+        inline auto getGrid() const -> const GridQuadLinear& {
+            return _grid;
+        }
+
+        inline auto getSolution() const -> const std::vector<double>& {
+            return _solve;
+        }
+
     private:
         SparseMatrix _global_mat;
         SparseMatrix _global_M;

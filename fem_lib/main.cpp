@@ -34,11 +34,32 @@ double s2_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unu
     return DomainFunctionsQuadsLinear::not_defined;
 }
 
+
+void printSolveToFile(const string& filepath, size_t pxCount, size_t pyCount, const SolverQuadsLinear& solver) {
+    auto ofile = ofstream();
+    ofile.open(filepath);
+
+    auto& grid = solver.getGrid();
+    if (pxCount == 0 && pyCount == 0) {
+        auto& solution = solver.getSolution();
+        for (size_t i = 0; i < grid.points.size(); i++) {
+            auto& p = grid.points[i];
+            ofile << format("{} {} {}\n", p.x, p.y, solution.at(i));
+        }
+    }
+    else {
+        // ??? TODO: Добавить вывод произвольной области, ы
+    }
+
+    ofile.close();
+}
+
 int main() {
     setlocale(LC_ALL, "ru-RU");
 
     const auto domainFilepath = string("io/domain.txt");
     const auto gridFilepath = string("io/grid.txt");
+    const auto solveFilepath = string("io/solution.txt");
 
     logger::inFrameDebug("Debug mode enabled. Program may work slow and additional logs was output");
 
@@ -99,7 +120,7 @@ int main() {
         auto p_rel = p_abs / std::abs(ui);
 
         absolute += p_abs;
-        relative += std::abs(ui); // Накапливаем погрешность
+        relative += std::abs(ui); // Накапливаем значение общей функции
 
         if (grid.points.size() < 100) {
             oss << format("| {:^4} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} |\n",
@@ -136,7 +157,7 @@ int main() {
         auto p_rel = p_abs / std::abs(ui);
 
         absolute += p_abs;
-        relative += std::abs(ui); // Накапливаем погрешность
+        relative += std::abs(ui); // Накапливаем значение общей функции
 
         oss << format("| {:^4} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} |\n",
             i + 1, point.x, point.y, qi, ui, p_abs, p_rel);
@@ -145,6 +166,8 @@ int main() {
     relative = absolute / relative;
     cout << format("Absolute error: {:8.4e}\n", absolute);
     cout << format("Relative error: {:8.4e}\n", relative);
+
+    printSolveToFile(solveFilepath, 0, 0, solver);
 
     return 0;
 }

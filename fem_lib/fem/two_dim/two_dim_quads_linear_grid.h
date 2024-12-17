@@ -10,7 +10,7 @@ namespace fem::two_dim {
     struct GridQuadLinear {
         size_t Kx{}; /// Count of points by X axis
         size_t Ky{}; /// Count of points by Y axis
-
+        
         std::vector<Point> points{};          /// Points of Grid
         std::vector<MeshQuadLinear> meshes{}; /// Meshes of Grid
         std::vector<size_t> usedMaterials{};  /// Numbers of used materials for this grid

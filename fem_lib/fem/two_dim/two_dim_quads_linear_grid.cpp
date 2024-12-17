@@ -248,6 +248,194 @@ static void fillMaterials(const Domain& domain, fem::two_dim::GridQuadLinear& gr
 
 
 /**
+ * @brief Fill s1 boundary conditions for meshes
+ */
+static void fillS1(const Domain& domain, fem::two_dim::GridQuadLinear& grid) {
+    if (grid.Kx == 0 || grid.Ky == 0) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
+        logger::debug(warnMsg, logger::Colors::warning);
+    }
+    if (grid.meshes.empty()) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: there is no meshes in grid (size = {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillMeshes` at first", grid.meshes.size());
+        logger::debug(warnMsg, logger::Colors::warning);
+    }
+
+    // Domain to Grid points
+    auto XlinesToPoints = std::vector<size_t>(domain.Kx);
+    XlinesToPoints.at(0) = 0;
+    for (size_t i = 0; i < domain.nx.size(); i++) {
+        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i] * (domain.splitX + 1);
+    }
+    auto YlinesToPoints = std::vector<size_t>(domain.Ky);
+    YlinesToPoints.at(0) = 0;
+    for (size_t i = 0; i < domain.ny.size(); i++) {
+        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * (domain.splitY + 1);
+    }
+
+    // TODO: Refactor this to lower complexity from O(N2) to O(N logN)
+    for (const auto& s1 : domain.s1_edges) {
+        // Convert s1 coordinate lines to grid coordinate lines
+        auto xBegLine = XlinesToPoints[s1.xBeginNum - 1];
+        auto xEndLine = XlinesToPoints[s1.xEndNum - 1];
+        auto yBegLine = YlinesToPoints[s1.yBeginNum - 1];
+        auto yEndLine = YlinesToPoints[s1.yEndNum - 1];
+
+        // Determ if this edge vertical or horizontal
+        auto isVert = xBegLine == xEndLine;
+        auto s1_cond = fem::two_dim::EdgeCondition();
+        s1_cond.type = fem::two_dim::EdgeCondition::Type::First;
+        s1_cond.functionNumber = s1.funcNum;
+
+        for (auto& mesh : grid.meshes) {
+            auto isHaveCondition = false;
+
+            // Get coordinate lines for BL and TR nodes of mesh
+            auto blLineX = mesh.indOfPoints[0] % grid.Kx;
+            auto blLineY = mesh.indOfPoints[0] / grid.Kx;
+            auto trLineX = mesh.indOfPoints[3] % grid.Kx;
+            auto trLineY = mesh.indOfPoints[3] / grid.Kx;
+
+            if (isVert) {
+                auto isLeft = blLineX == xBegLine;
+                auto isRight = trLineX == xEndLine;
+
+                auto isInY = true;
+                isInY &= blLineY >= yBegLine;
+                isInY &= trLineY <= yEndLine;
+
+                if (isInY && isLeft) {
+                    s1_cond.pointsIndices[0] = 0;
+                    s1_cond.pointsIndices[1] = 2;
+                    isHaveCondition = true;
+                }
+                else if (isInY && isRight) {
+                    s1_cond.pointsIndices[0] = 1;
+                    s1_cond.pointsIndices[1] = 3;
+                    isHaveCondition = true;
+                }
+            }
+            else {
+                auto isBottom = blLineY == yBegLine;
+                auto isTop = trLineY == yEndLine;
+
+                auto isInX = true;
+                isInX &= blLineX >= xBegLine;
+                isInX &= trLineX <= xEndLine;
+
+                if (isInX && isBottom) {
+                    s1_cond.pointsIndices[0] = 0;
+                    s1_cond.pointsIndices[1] = 1;
+                    isHaveCondition = true;
+                }
+                else if (isInX && isTop) {
+                    s1_cond.pointsIndices[0] = 2;
+                    s1_cond.pointsIndices[1] = 3;
+                    isHaveCondition = true;
+                }
+            }
+
+            if (isHaveCondition) {
+                mesh.s1Conditions.push_back(s1_cond);
+            }
+        }
+    }
+}
+
+
+/**
+ * @brief Fill s2 boundary conditions for meshes
+ */
+static void fillS2(const Domain& domain, fem::two_dim::GridQuadLinear& grid) {
+    if (grid.Kx == 0 || grid.Ky == 0) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: some of sizes of grid (Kx and Ky) is equal to zero ({} or {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillPoints` at first", grid.Kx, grid.Ky);
+        logger::debug(warnMsg, logger::Colors::warning);
+    }
+    if (grid.meshes.empty()) {
+        auto warnMsg = format("Function `two_dim_quads_linear_grid.cpp::fillMaterials`: there is no meshes in grid (size = {}). Maybe you need to use `two_dim_quads_linear_grid.cpp::fillMeshes` at first", grid.meshes.size());
+        logger::debug(warnMsg, logger::Colors::warning);
+    }
+
+    // Domain to Grid points
+    auto XlinesToPoints = std::vector<size_t>(domain.Kx);
+    XlinesToPoints.at(0) = 0;
+    for (size_t i = 0; i < domain.nx.size(); i++) {
+        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i] * (domain.splitX + 1);
+    }
+    auto YlinesToPoints = std::vector<size_t>(domain.Ky);
+    YlinesToPoints.at(0) = 0;
+    for (size_t i = 0; i < domain.ny.size(); i++) {
+        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * (domain.splitY + 1);
+    }
+
+    // TODO: Refactor this to lower complexity from O(N2) to O(N logN)
+    for (const auto& s2 : domain.s2_edges) {
+        // Convert s2 coordinate lines to grid coordinate lines
+        auto xBegLine = XlinesToPoints[s2.xBeginNum - 1];
+        auto xEndLine = XlinesToPoints[s2.xEndNum - 1];
+        auto yBegLine = YlinesToPoints[s2.yBeginNum - 1];
+        auto yEndLine = YlinesToPoints[s2.yEndNum - 1];
+
+        // Determ if this edge vertical or horizontal
+        auto isVert = xBegLine == xEndLine;
+        auto s2_cond = fem::two_dim::EdgeCondition();
+        s2_cond.type = fem::two_dim::EdgeCondition::Type::Second;
+        s2_cond.functionNumber = s2.funcNum;
+
+        for (auto& mesh : grid.meshes) {
+            bool isHaveCondition = false;
+            // Get coordinate lines for BL and TR nodes of mesh
+            auto blLineX = mesh.indOfPoints[0] % grid.Kx;
+            auto blLineY = mesh.indOfPoints[0] / grid.Kx;
+            auto trLineX = mesh.indOfPoints[3] % grid.Kx;
+            auto trLineY = mesh.indOfPoints[3] / grid.Kx;
+
+            if (isVert) {
+                auto isLeft = blLineX == xBegLine;
+                auto isRight = trLineX == xEndLine;
+
+                auto isInY = true;
+                isInY &= blLineY >= yBegLine;
+                isInY &= trLineY <= yEndLine;
+
+                if (isInY && isLeft) {
+                    s2_cond.pointsIndices[0] = 0;
+                    s2_cond.pointsIndices[1] = 2;
+                    isHaveCondition = true;
+                }
+                else if (isInY && isRight) {
+                    s2_cond.pointsIndices[0] = 1;
+                    s2_cond.pointsIndices[1] = 3;
+                    isHaveCondition = true;
+                }
+            }
+            else {
+                auto isBottom = blLineY == yBegLine;
+                auto isTop = trLineY == yEndLine;
+
+                auto isInX = true;
+                isInX &= blLineX >= xBegLine;
+                isInX &= trLineX <= xEndLine;
+
+                if (isInX && isBottom) {
+                    s2_cond.pointsIndices[0] = 0;
+                    s2_cond.pointsIndices[1] = 1;
+                    isHaveCondition = true;
+                }
+                else if (isInX && isTop) {
+                    s2_cond.pointsIndices[0] = 2;
+                    s2_cond.pointsIndices[1] = 3;
+                    isHaveCondition = true;
+                }
+            }
+
+            if (isHaveCondition) {
+                mesh.s2Conditions.push_back(s2_cond);
+            }
+        }
+    }
+}
+
+/**
  * @brief Remove an unused meshes from grid (unused == doesn't contain any material)
  */
 static void removeUnusedMeshes(fem::two_dim::GridQuadLinear& grid) {
@@ -303,6 +491,18 @@ namespace fem::two_dim {
         fillMaterials(domain, *this);
         timer.stop();
         logger::debug(format("GridQuadLinear::buildFrom: Materials was setted in {} ms", timer.elapsedMilliseconds()));
+        
+        // Fill s2
+        timer.start();
+        fillS2(domain, *this);
+        timer.stop();
+        logger::debug(format("GridQuadLinear::buildFrom: S2 was setted in {} ms", timer.elapsedMilliseconds()));
+
+        // Fill s1
+        timer.start();
+        fillS1(domain, *this);
+        timer.stop();
+        logger::debug(format("GridQuadLinear::buildFrom: S1 was setted in {} ms", timer.elapsedMilliseconds()));
 
         // Remove unused meshes with empty materials
         timer.start();

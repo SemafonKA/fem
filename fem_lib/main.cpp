@@ -15,19 +15,22 @@ double u(double x, double y) {
 }
 
 double lambda([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    return 1.0;
+    return 0.025;
 }
 
 double gamma([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    return 0.01;
+    return 0;
 }
 
 double func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    return gamma(x, y, material) * u(x, y);
+    if (material == 1) {
+        return 0;
+    }
+    return 100;
 }
 
 double s1_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t index) {
-    return u(x, y);
+    return 0;
 }
 
 double s2_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t index) {

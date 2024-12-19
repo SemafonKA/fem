@@ -11,7 +11,7 @@ using namespace fem::two_dim;
 
 
 double u(double x, double y) {
-    return x * x;
+    return x*x + y*y;
 }
 
 double lambda([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
@@ -23,7 +23,7 @@ double gamma([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unuse
 }
 
 double func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    return -2.0 * lambda(x, y, material) + gamma(x, y, material) * u(x, y);
+    return -4.0 + gamma(x, y, material) * u(x, y);
 }
 
 double s1_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t index) {
@@ -141,11 +141,12 @@ int main() {
 
     logger::inFrame("Test points");
     std::vector<Point> testPoints = {
-        {1, 1},
-        {1.25, 1.5},
-        {5.2, 1.444},
-        {3.2, 2.5},
-        {2.8, 3.4}
+        //{1, 1},
+        //{1.25, 1.5},
+        //{5.2, 1.444},
+        //{3.2, 2.5},
+        //{2.8, 3.4},
+        {4.0, 4.0}
     };
 
     oss.str("");

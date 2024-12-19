@@ -302,16 +302,16 @@ namespace fem::two_dim {
         timer.start();
         _solve.resize(_global_mat.Size());
         IterSolvers::LOS::Init_LuPrecond(_global_mat.Size(), _global_mat);
-        IterSolvers::minEps = 1e-40;
+        IterSolvers::minEps = 1e-20;
         double eps;
         auto iter = IterSolvers::LOS::LuPrecond(_global_mat, _global_b, _solve, eps, false);
         IterSolvers::Destruct();
         timer.stop();
-        logger::debug(format("SolverQuadsLinear::solveStatic - SLAU solved by {} ms", timer.elapsedMilliseconds()));
-        logger::debug(format("                                 Iterations: {}, eps: {}", iter, eps));
+        logger::log(format("SolverQuadsLinear::solveStatic - SLAU solved by {} ms", timer.elapsedMilliseconds()));
+        logger::log(format("                                 Iterations: {}, eps: {}", iter, eps));
 
         global_timer.stop();
-        logger::log(format("SolverQuadsLinear::solveStatic - FEM solved by {} second", global_timer.elapsedSeconds()));
+        logger::log(format("SolverQuadsLinear::solveStatic - FEM solved by {} seconds", global_timer.elapsedSeconds()));
         return _solve;
     }
 
@@ -497,49 +497,13 @@ namespace fem::two_dim {
             };
 
             for (const auto& s2 : mesh.s2Conditions) {
-                // if edge is vertical
-                if (s2.pointsIndices[0] == 0 && s2.pointsIndices[1] == 2 ||
-                    s2.pointsIndices[0] == 1 && s2.pointsIndices[1] == 3) {
-                    auto xi = s2.pointsIndices[0] == 0 ? 0.0 : 1.0;
-
-                    size_t i = 0;
-
-                    auto int_func = [&](double eta) {
-                        double result = 1;
-                        auto _x = x(xi, eta, p);
-                        auto _y = y(xi, eta, p);
-                        result *= phi(xi, eta, i);
-                        result *= std::abs(J(xi, eta, p)) * _funcs.s2_func(_x, _y, s2.functionNumber);
-                        return result;
-                        };
-                    auto int_solver = Gaussian_4p::OneDimentionSolver(0, 1, int_func);
-
-                    for (size_t j = 0; j < 2; j++) {
-                        i = s2.pointsIndices[j];
-                        _global_b.at(mesh.indOfPoints[i]) += int_solver.compute();
-                    }
-                }
-                // if edge is horizontal
-                else {
-                    auto eta = s2.pointsIndices[0] == 0 ? 0.0 : 1.0;
-
-                    size_t i = 0;
-
-                    auto int_func = [&](double xi) {
-                        double result = 1;
-                        auto _x = x(xi, eta, p);
-                        auto _y = y(xi, eta, p);
-                        result *= phi(xi, eta, i);
-                        result *= std::abs(J(xi, eta, p)) * _funcs.s2_func(_x, _y, s2.functionNumber);
-                        return result;
-                        };
-                    auto int_solver = Gaussian_4p::OneDimentionSolver(0, 1, int_func);
-
-                    for (size_t j = 0; j < 2; j++) {
-                        i = s2.pointsIndices[j];
-                        _global_b.at(mesh.indOfPoints[i]) += int_solver.compute();
-                    }
-                }
+                auto i = s2.pointsIndices[0];
+                auto j = s2.pointsIndices[1];
+                auto t1 = _funcs.s2_func(p[i].x, p[i].y, s2.functionNumber);
+                auto t2 = _funcs.s2_func(p[j].x, p[j].y, s2.functionNumber);
+                auto h = std::sqrt(std::pow(p[j].x - p[i].x, 2) + std::pow(p[j].y - p[i].y, 2));
+                _global_b.at(mesh.indOfPoints[i]) += h / 6.0 * (2.0 * t1 + t2);
+                _global_b.at(mesh.indOfPoints[j]) += h / 6.0 * (t1 + 2.0 * t2);
             }
         }
     }
@@ -552,7 +516,6 @@ namespace fem::two_dim {
                 _grid.points[mesh.indOfPoints[2]],
                 _grid.points[mesh.indOfPoints[3]],
             };
-
             for (const auto& s1 : mesh.s1Conditions) {
                 for (size_t i = 0; i < 2; i++) {
                     auto local_ind = s1.pointsIndices[i];

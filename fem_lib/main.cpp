@@ -11,26 +11,23 @@ using namespace fem::two_dim;
 
 
 double u(double x, double y) {
-    return x + y;
+    return x * x;
 }
 
 double lambda([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    return 0.025;
+    return 1.0;
 }
 
 double gamma([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    return 0;
+    return 1.0;
 }
 
 double func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    if (material == 1) {
-        return 0;
-    }
-    return 100;
+    return -2.0 * lambda(x, y, material) + gamma(x, y, material) * u(x, y);
 }
 
 double s1_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t index) {
-    return 0;
+    return u(x,y);
 }
 
 double s2_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t index) {
@@ -87,6 +84,12 @@ int main() {
         logger::error(format("There is some error while building grid: {}", e.what()));
         return -1;
     }
+
+    logger::debug("Finite elements dump:");
+    for (const auto& elem : grid.meshes) {
+        logger::debug(format("   {}", elem.toString()));
+    }
+
     auto ofile = ofstream();
     ofile.open(gridFilepath);
     ofile << grid.dump();

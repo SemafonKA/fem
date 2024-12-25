@@ -9,21 +9,25 @@
 /// DOMAINS
 
 #include "../two_dim/two_dim_domain.h"
+#include "../three_dim/three_dim_domain.h"
 
 
 
 /// POINTS
 #include "../two_dim/two_dim_point.h"
+#include "../three_dim/three_dim_point.h"
 
 
 
 /// MESHES
 #include "../two_dim/two_dim_quads_linear_mesh.h"
+#include "../three_dim/three_dim_cuboid_linear_mesh.h"
 
 
 
 /// GRIDS
 #include "../two_dim/two_dim_quads_linear_grid.h"
+#include "../three_dim/three_dim_cuboid_linear_grid.h"
 
 
 

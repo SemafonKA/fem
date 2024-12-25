@@ -26,10 +26,10 @@ static auto getPointsCount(const Domain& domain) -> std::pair<size_t, size_t> {
     size_t Ky_ext = 1;
 
     for (auto el : domain.nx) {
-        Kx_ext += el * (domain.splitX + 1);
+        Kx_ext += el * static_cast<size_t>(pow(2, domain.splitX));
     }
     for (auto el : domain.ny) {
-        Ky_ext += el * (domain.splitX + 1);
+        Ky_ext += el * static_cast<size_t>(pow(2, domain.splitY));
     }
 
     Kx_ext = Kx_ext == 1 ? 0 : Kx_ext;

@@ -26,7 +26,7 @@ namespace fem::three_dim {
         }
     };
 
-    struct MeshQuadLinear {
+    struct MeshCuboidLinear {
         std::array<size_t, 12> indOfEdges{};  /// indices of edges in order [  ]
         std::array<size_t, 8> indOfPoints{}; /// indices of point in order [ BFL BFR BRL BRR TFL TFT TRL TRR ] ([B]ottom, [T]op, [L]eft, [R]ight, [F]ront, [R]ear)
         size_t materialNum{}; /// Number of material of mesh

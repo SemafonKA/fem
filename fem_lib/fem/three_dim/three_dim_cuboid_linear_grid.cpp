@@ -173,7 +173,7 @@ static void fillMeshes(fem::three_dim::GridCuboidLinear& grid) {
     for (size_t z = 1; z < k; z++) {
         for (size_t y = 1; y < m; y++) {
             for (size_t x = 1; x < n; x++) {
-                auto mesh = fem::three_dim::MeshQuadLinear();
+                auto mesh = fem::three_dim::MeshCuboidLinear();
                 mesh.indOfPoints = {
                     (x - 1) + (y - 1) * n + (z - 1) * n * m,
                     x + (y - 1) * n + (z - 1) * n * m,
@@ -522,7 +522,7 @@ static void fillS2(const Domain& domain, fem::three_dim::GridCuboidLinear& grid)
 static void removeUnusedMeshes(fem::three_dim::GridCuboidLinear& grid) {
     auto& meshes = grid.meshes;
 
-    auto filtered_meshes = std::vector<fem::three_dim::MeshQuadLinear>();
+    auto filtered_meshes = std::vector<fem::three_dim::MeshCuboidLinear>();
     filtered_meshes.reserve(meshes.size());
     for (auto& mesh : meshes) {
         if (mesh.materialNum != 0) {

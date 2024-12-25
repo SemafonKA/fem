@@ -33,3 +33,4 @@
 
 /// SOLVERS
 #include "../two_dim/two_dim_quads_linear_solver.h"
+#include "../three_dim/three_dim_cuboid_linear_solver.h"

@@ -25,6 +25,15 @@
     <ClCompile Include="fem\two_dim\two_dim_quads_linear_solver.cpp">
       <Filter>Исходные файлы\fem\two_dim</Filter>
     </ClCompile>
+    <ClCompile Include="fem\three_dim\three_dim_domain.cpp">
+      <Filter>Исходные файлы\fem\three_dim</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\three_dim\three_dim_cuboid_linear_grid.cpp">
+      <Filter>Исходные файлы\fem\three_dim</Filter>
+    </ClCompile>
+    <ClCompile Include="fem\three_dim\three_dim_cuboid_linear_solver.cpp">
+      <Filter>Исходные файлы\fem\three_dim</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="logger.h">
@@ -62,6 +71,21 @@
     </ClInclude>
     <ClInclude Include="fem\two_dim\two_dim_quads_linear_solver.h">
       <Filter>Файлы заголовков\fem\two_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\three_dim\three_dim_point.h">
+      <Filter>Файлы заголовков\fem\three_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\three_dim\three_dim_domain.h">
+      <Filter>Файлы заголовков\fem\three_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\three_dim\three_dim_cuboid_linear_mesh.h">
+      <Filter>Файлы заголовков\fem\three_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\three_dim\three_dim_cuboid_linear_grid.h">
+      <Filter>Файлы заголовков\fem\three_dim</Filter>
+    </ClInclude>
+    <ClInclude Include="fem\three_dim\three_dim_cuboid_linear_solver.h">
+      <Filter>Файлы заголовков\fem\three_dim</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -110,6 +134,12 @@
     <Filter Include="Исходные файлы\three_steppers\Resourses">
       <UniqueIdentifier>{96957fbc-6160-4f4c-b685-a159989aef0c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы заголовков\fem\three_dim">
+      <UniqueIdentifier>{071a4cda-7e5b-45cc-833e-b59a880c9492}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\fem\three_dim">
+      <UniqueIdentifier>{da5dfcad-bca4-4e77-a984-36735a892f96}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="examples\область с 1 пз Иры.txt">
@@ -122,6 +152,9 @@
       <Filter>Файлы ресурсов\io</Filter>
     </Text>
     <Text Include="io\domain.txt">
+      <Filter>Файлы ресурсов\io</Filter>
+    </Text>
+    <Text Include="io\solution.txt">
       <Filter>Файлы ресурсов\io</Filter>
     </Text>
   </ItemGroup>

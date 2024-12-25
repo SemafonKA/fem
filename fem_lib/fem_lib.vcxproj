@@ -132,6 +132,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fem\three_dim\three_dim_cuboid_linear_grid.cpp" />
+    <ClCompile Include="fem\three_dim\three_dim_cuboid_linear_solver.cpp" />
+    <ClCompile Include="fem\three_dim\three_dim_domain.cpp" />
     <ClCompile Include="fem\two_dim\two_dim_domain.cpp" />
     <ClCompile Include="fem\two_dim\two_dim_quads_linear_grid.cpp" />
     <ClCompile Include="fem\two_dim\two_dim_quads_linear_solver.cpp" />
@@ -143,6 +146,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fem\includes\fem.h" />
+    <ClInclude Include="fem\three_dim\three_dim_cuboid_linear_grid.h" />
+    <ClInclude Include="fem\three_dim\three_dim_cuboid_linear_mesh.h" />
+    <ClInclude Include="fem\three_dim\three_dim_cuboid_linear_solver.h" />
+    <ClInclude Include="fem\three_dim\three_dim_domain.h" />
+    <ClInclude Include="fem\three_dim\three_dim_point.h" />
     <ClInclude Include="fem\two_dim\two_dim_domain.h" />
     <ClInclude Include="fem\two_dim\two_dim_point.h" />
     <ClInclude Include="fem\two_dim\two_dim_quads_linear_grid.h" />
@@ -160,6 +168,7 @@
     <Text Include="examples\область с моей защиты 1 пз.txt" />
     <Text Include="io\domain.txt" />
     <Text Include="io\grid.txt" />
+    <Text Include="io\solution.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,7 +13,7 @@ namespace fem::three_dim {
         size_t Kz{}; /// Count of points by Z axis
 
         std::vector<Point> points{};          /// Points of Grid
-        std::vector<MeshQuadLinear> meshes{}; /// Meshes of Grid
+        std::vector<MeshCuboidLinear> meshes{}; /// Meshes of Grid
         std::vector<size_t> usedMaterials{};  /// Numbers of used materials for this grid
 
         /**

@@ -11,50 +11,63 @@ using namespace std;
 using namespace fem::three_dim;
 
 
-double u(double x, double y) {
-    return (x - 1) * (x - 2) * (x - 3);
+double u(double x, double y, double z) {
+    return x + y + z;
 }
 
-double lambda([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
+double lambda([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] double z, [[maybe_unused]] size_t material) {
     return 1;
 }
 
-double gamma([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
+double gamma([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] double z, [[maybe_unused]] size_t material) {
     return 1;
 }
 
-double func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t material) {
-    return -6*(x-2) + gamma(x, y, material) * u(x, y);
+double func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] double z, [[maybe_unused]] size_t material) {
+    return gamma(x, y, z, material) * u(x, y, z);
 }
 
-double s1_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t index) {
-    return u(x, y);
+double s1_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] double z, [[maybe_unused]] size_t index) {
+    return u(x, y, z);
 }
 
-double s2_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] size_t index) {
-    //return DomainFunctionsQuadsLinear::not_defined;
-    return std::numeric_limits<double>::infinity();
+double s2_func([[maybe_unused]] double x, [[maybe_unused]] double y, [[maybe_unused]] double z, [[maybe_unused]] size_t index) {
+    return DomainFunctionsCuboidLinear::not_defined;
 }
 
 
-//void printSolveToFile(const string& filepath, size_t pxCount, size_t pyCount, const SolverQuadsLinear& solver) {
-//    auto ofile = ofstream();
-//    ofile.open(filepath);
-//
-//    auto& grid = solver.getGrid();
-//    if (pxCount == 0 && pyCount == 0) {
-//        auto& solution = solver.getSolution();
-//        for (size_t i = 0; i < grid.points.size(); i++) {
-//            auto& p = grid.points[i];
-//            ofile << format("{:20.14f} {:20.14f} {:20.14f}\n", p.x, p.y, solution.at(i));
-//        }
-//    }
-//    else {
-//        // ??? TODO: Добавить вывод произвольной области, ы
-//    }
-//
-//    ofile.close();
-//}
+double u_t(double x, double y, double z, double t) {
+    return x + y + z;
+}
+
+double func_t(double x, double y, double z, double t, size_t material) {
+    return gamma(x, y, z, material) * u_t(x, y, z, t);
+}
+
+double s1_func_t(double x, double y, double z, double t, size_t index) {
+    return u_t(x, y, z, t);
+}
+
+
+
+void printSolveToFile(const string& filepath, size_t pxCount, size_t pyCount, const SolverCuboidLinear& solver) {
+    auto ofile = ofstream();
+    ofile.open(filepath);
+
+    auto& grid = solver.getGrid();
+    if (pxCount == 0 && pyCount == 0) {
+        auto& solution = solver.getSolution();
+        for (size_t i = 0; i < grid.points.size(); i++) {
+            auto& p = grid.points[i];
+            ofile << format("{:20.14f} {:20.14f} {:20.14f}\n", p.x, p.y, solution.at(i));
+        }
+    }
+    else {
+        // ??? TODO: Добавить вывод произвольной области, ы
+    }
+
+    ofile.close();
+}
 
 int main() {
     setlocale(LC_ALL, "ru-RU");
@@ -96,90 +109,85 @@ int main() {
     }
 
     auto ofile = ofstream();
-    //ofile.open(gridFilepath);
-    //ofile << grid.dump();
-    //ofile.close();
-    //logger::log(format("Grid info was written into file {}", gridFilepath));
+    ofile.open(gridFilepath);
+    ofile << grid.dump();
+    ofile.close();
+    logger::log(format("Grid info was written into file {}", gridFilepath));
 
-    //auto funcs = DomainFunctionsQuadsLinear();
-    //funcs.gamma = gamma;
-    //funcs.lambda = lambda;
-    //funcs.func = func;
-    //funcs.s1_func = s1_func;
-    //funcs.s2_func = s2_func;
+    auto funcs = DomainFunctionsCuboidLinear();
+    funcs.gamma = gamma;
+    funcs.lambda = lambda;
+    funcs.func = func;
+    funcs.s1_func = s1_func;
+    funcs.s2_func = s2_func;
 
-    //auto solver = SolverQuadsLinear(funcs, grid);
-    //auto q = solver.solveStatic();
+    auto solver = SolverCuboidLinear(funcs, grid);
+    auto q = solver.solveStatic();
 
-    //auto absolute = 0.0;
-    //auto relative = 0.0;
+    auto absolute = 0.0;
+    auto relative = 0.0;
 
-    //logger::inFrame("Solver result");
-    //auto oss = ostringstream();
+    logger::inFrame("Solver result");
+    auto oss = ostringstream();
 
-    //if (grid.points.size() < 100) {
-    //    oss << format("| {:^4} | {:^22} | {:^22} | {:^22} | {:^22} | {:^22} | {:^22} |\n",
-    //        "#", "X", "Y", "q_i", "u_i", "abs", "rel");
-    //    oss << format("| {0:^4} | {0:^22} | {0:^22} | {0:^22} | {0:^22} | {0:^22} | {0:^22} |\n", ":-:");
-    //}
+    if (grid.points.size() < 100) {
+        oss << format("| {:^4} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} |\n",
+            "#", "X", "Y", "Z", "q_i", "u_i", "abs", "rel");
+        oss << format("| {0:^4} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} |\n", ":-:");
+    }
 
-    //for (size_t i = 0; i < grid.points.size(); i++) {
-    //    const auto& point = grid.points[i];
-    //    auto qi = q[i];
-    //    auto ui = u(point.x, point.y);
-    //    auto p_abs = std::abs(qi - ui);
-    //    auto p_rel = p_abs / std::abs(ui);
+    for (size_t i = 0; i < grid.points.size(); i++) {
+        const auto& point = grid.points[i];
+        auto qi = q[i];
+        auto ui = u(point.x, point.y, point.z);
+        auto p_abs = std::abs(qi - ui);
+        auto p_rel = p_abs / std::abs(ui);
 
-    //    absolute += p_abs;
-    //    relative += std::abs(ui); // Накапливаем значение общей функции
+        absolute += p_abs;
+        relative += std::abs(ui); // Накапливаем значение общей функции
 
-    //    if (grid.points.size() < 100) {
-    //        oss << format("| {:^4} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} |\n",
-    //            i + 1, point.x, point.y, qi, ui, p_abs, p_rel);
-    //    }
-    //}
+        if (grid.points.size() < 100) {
+            oss << format("| {:^4} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} |\n",
+                i + 1, point.x, point.y, point.z, qi, ui, p_abs, p_rel);
+        }
+    }
 
-    //cout << oss.str() << "\n";
-    //relative = absolute / relative;
-    //cout << format("Absolute error: {:8.4e}\n", absolute);
-    //cout << format("Relative error: {:8.4e}\n", relative);
+    cout << oss.str() << "\n";
+    relative = absolute / relative;
+    cout << format("Absolute error: {:8.4e}\n", absolute);
+    cout << format("Relative error: {:8.4e}\n", relative);
 
-    //logger::inFrame("Test points");
-    //std::vector<Point> testPoints = {
-    //    //{1, 1},
-    //    //{1.25, 1.5},
-    //    //{5.2, 1.444},
-    //    //{3.2, 2.5},
-    //    {2.8, 3.4},
-    //    //{4.0, 4.0}
-    //};
+    logger::inFrame("Test points");
+    std::vector<Point> testPoints = {
+        {2.5, 1.4, 2.2},
+    };
 
-    //oss.str("");
-    //relative = absolute = 0;
+    oss.str("");
+    relative = absolute = 0;
 
-    //oss << format("| {:^4} | {:^22} | {:^22} | {:^22} | {:^22} | {:^22} | {:^22} |\n",
-    //    "#", "X", "Y", "q_i", "u_i", "abs", "rel");
-    //oss << format("| {0:^4} | {0:^22} | {0:^22} | {0:^22} | {0:^22} | {0:^22} | {0:^22} |\n", ":-:");
+    oss << format("| {:^4} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} |\n",
+        "#", "X", "Y", "Z", "q_i", "u_i", "abs", "rel");
+    oss << format("| {0:^4} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} |\n", ":-:");
 
-    //for (size_t i = 0; i < testPoints.size(); i++) {
-    //    const auto& point = testPoints[i];
-    //    auto qi = solver.value(point);
-    //    auto ui = u(point.x, point.y);
-    //    auto p_abs = std::abs(qi - ui);
-    //    auto p_rel = p_abs / std::abs(ui);
+    for (size_t i = 0; i < testPoints.size(); i++) {
+        const auto& point = testPoints[i];
+        auto qi = solver.value(point);
+        auto ui = u(point.x, point.y, point.z);
+        auto p_abs = std::abs(qi - ui);
+        auto p_rel = p_abs / std::abs(ui);
 
-    //    absolute += p_abs;
-    //    relative += std::abs(ui); // Накапливаем значение общей функции
+        absolute += p_abs;
+        relative += std::abs(ui); // Накапливаем значение общей функции
 
-    //    oss << format("| {:^4} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} | {:^22f} |\n",
-    //        i + 1, point.x, point.y, qi, ui, p_abs, p_rel);
-    //}
-    //cout << oss.str() << "\n";
-    //relative = absolute / relative;
-    //cout << format("Absolute error: {:8.4e}\n", absolute);
-    //cout << format("Relative error: {:8.4e}\n", relative);
+        oss << format("| {:^4} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} |\n",
+            i + 1, point.x, point.y, point.z, qi, ui, p_abs, p_rel);
+    }
+    cout << oss.str() << "\n";
+    relative = absolute / relative;
+    cout << format("Absolute error: {:8.4e}\n", absolute);
+    cout << format("Relative error: {:8.4e}\n", relative);
 
-    //printSolveToFile(solveFilepath, 0, 0, solver);
+    printSolveToFile(solveFilepath, 0, 0, solver);
 
     return 0;
 }

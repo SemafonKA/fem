@@ -1,6 +1,7 @@
 #include "three_dim_cuboid_linear_solver.h"
 
 #include <format>
+#include <sstream>
 
 #include "../../logger.h"
 #include "../../timer.h"
@@ -10,6 +11,22 @@
 using namespace std;
 
 namespace fem::three_dim {
+
+    static inline std::vector<double> operator+ (const std::vector<double>& left, const std::vector<double>& right) {
+        std::vector<double> res(left.size());
+        for (size_t i = 0; i < res.size(); i++) {
+            res[i] = left.at(i) + right.at(i);
+        }
+        return res;
+    }
+
+    static inline std::vector<double> operator- (const std::vector<double>& left, const std::vector<double>& right) {
+        std::vector<double> res(left.size());
+        for (size_t i = 0; i < res.size(); i++) {
+            res[i] = left.at(i) - right.at(i);
+        }
+        return res;
+    }
 
     template<size_t N>
     static inline std::array<double, N> operator* (double left, const std::array<double, N>& right) {
@@ -96,7 +113,7 @@ namespace fem::three_dim {
     }
 
     [[nodiscard]]
-    auto SolverCuboidLinear::solveStatic() -> std::vector<double> {
+    auto SolverCuboidLinear::solveStatic(const std::vector<double>& timeMesh) -> std::vector<double> {
         Timer global_timer;
         Timer timer;
         global_timer.start();
@@ -113,38 +130,121 @@ namespace fem::three_dim {
         for (const auto& elem : _grid.meshes) {
             addLocalMatrixToGlobal(elem, _global_G, getLocalG(elem));
             addLocalMatrixToGlobal(elem, _global_M, getLocalM(elem));
-            addLocalbToGlobal(elem, _global_b, getLocalB(elem));
         }
         timer.stop();
         logger::debug(format("SolverQuadsLinear::solveStatic - global matrices was computed by {} ms", timer.elapsedMilliseconds()));
 
-        _global_mat = _global_M + _global_G;
+        std::array<std::vector<double>, 3> q;
+        q[0].resize(_global_b.size());
+        q[1].resize(_global_b.size());
+        q[2].resize(_global_b.size());
+        for (size_t i = 0; i < q[0].size(); i++) {
+            const auto& p = _grid.points[i];
+            q[0][i] = _funcs.initials(p.x, p.y, p.z, timeMesh[0]);
+            q[1][i] = _funcs.initials(p.x, p.y, p.z, timeMesh[1]);
+        }
 
-        timer.start();
-        includeS2();
-        timer.stop();
-        logger::debug(format("SolverQuadsLinear::solveStatic - s2 was computed by {} ms", timer.elapsedMilliseconds()));
+        for (size_t iterT = 2; iterT < timeMesh.size(); iterT++) {
+            double dt = timeMesh[iterT] - timeMesh[iterT - 2];
+            double dt1 = timeMesh[iterT - 1] - timeMesh[iterT - 2];
+            double dt0 = timeMesh[iterT] - timeMesh[iterT - 1];
 
-        timer.start();
-        includeS1();
-        timer.stop();
-        logger::debug(format("SolverQuadsLinear::solveStatic - s1 was computed by {} ms", timer.elapsedMilliseconds()));
+            _global_b = std::vector<double>(_global_M.Size());
+            for (const auto& elem : _grid.meshes) {
+                addLocalbToGlobal(elem, _global_b, getLocalB(elem, timeMesh[iterT]));
+            }
 
-        // TODO: Учесть фиктивные узлы ????
+            _global_mat = (dt + dt0) / (dt * dt0) * _global_M + _global_G;
+            _global_b = _global_b - (dt0) / (dt * dt1) * _global_M * q[0] + (dt) / (dt1 * dt0) * _global_M * q[1];
 
-        timer.start();
-        _solve.resize(_global_mat.Size());
-        IterSolvers::LOS::Init_LuPrecond(_global_mat.Size(), _global_mat);
-        IterSolvers::minEps = 1e-20;
-        double eps;
-        auto iter = IterSolvers::LOS::LuPrecond(_global_mat, _global_b, _solve, eps, false);
-        IterSolvers::Destruct();
-        timer.stop();
-        logger::log(format("SolverQuadsLinear::solveStatic - SLAU solved by {} ms", timer.elapsedMilliseconds()));
-        logger::log(format("                                 Iterations: {}, eps: {}", iter, eps));
+            includeS2();
+            includeS1(timeMesh[iterT]);
 
-        global_timer.stop();
-        logger::log(format("SolverQuadsLinear::solveStatic - FEM solved by {} seconds", global_timer.elapsedSeconds()));
+            timer.start();
+            IterSolvers::LOS::Init_LuPrecond(_global_mat.Size(), _global_mat);
+            IterSolvers::minEps = 1e-20;
+            double eps;
+            q[2] = vector<double>(_global_mat.Size());
+            auto iter = IterSolvers::LOS::LuPrecond(_global_mat, _global_b, q[2], eps, false);
+            _solve = q[2];
+            IterSolvers::Destruct();
+            timer.stop();
+            logger::log(format("SolverQuadsLinear::solveStatic - SLAU solved by {} ms", timer.elapsedMilliseconds()));
+            logger::log(format("                                 Iterations: {}, eps: {}", iter, eps));
+
+            global_timer.stop();
+            logger::log(format("SolverQuadsLinear::solveStatic - FEM solved by {} seconds", global_timer.elapsedSeconds()));
+            
+            logger::inFrame(format("Solution with t = {}", timeMesh[iterT]));
+
+            auto oss = ostringstream();
+            auto absolute = 0.0;
+            auto relative = 0.0;
+            if (_grid.points.size() < 100) {
+                oss << format("| {:^4} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} |\n",
+                    "#", "X", "Y", "Z", "q_i", "u_i", "abs", "rel");
+                oss << format("| {0:^4} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} |\n", ":-:");
+            }
+
+            for (size_t i = 0; i < _grid.points.size(); i++) {
+                const auto& point = _grid.points[i];
+                auto qi = q[2][i];
+                auto ui = _funcs.initials(point.x, point.y, point.z, timeMesh[iterT]);
+                auto p_abs = std::abs(qi - ui);
+                auto p_rel = p_abs / std::abs(ui);
+
+                absolute += p_abs;
+                relative += std::abs(ui); // Накапливаем значение общей функции
+
+                if (_grid.points.size() < 100) {
+                    oss << format("| {:^4} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} |\n",
+                        i + 1, point.x, point.y, point.z, qi, ui, p_abs, p_rel);
+                }
+            }
+
+            cout << oss.str() << "\n";
+            relative = absolute / relative;
+            cout << format("Absolute error: {:8.4e}\n", absolute);
+            cout << format("Relative error: {:8.4e}\n", relative);
+
+            logger::inFrame("Test points");
+            std::vector<Point> testPoints = {
+                {2.5, 1.4, 2.2},
+                {1.1, 2.8, 1.2},
+                {2.1111, 2.5, 1.8},
+                {1.15923, 2.0, 1.11},
+                {1.9999, 2.0001, 1.2},
+            };
+
+            oss.str("");
+            relative = absolute = 0;
+
+            oss << format("| {:^4} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} | {:^14} |\n",
+                "#", "X", "Y", "Z", "q_i", "u_i", "abs", "rel");
+            oss << format("| {0:^4} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} | {0:^14} |\n", ":-:");
+
+            for (size_t i = 0; i < testPoints.size(); i++) {
+                const auto& point = testPoints[i];
+                auto qi = value(point);
+                auto ui = _funcs.initials(point.x, point.y, point.z, timeMesh[iterT]);
+                auto p_abs = std::abs(qi - ui);
+                auto p_rel = p_abs / std::abs(ui);
+
+                absolute += p_abs;
+                relative += std::abs(ui); // Накапливаем значение общей функции
+
+                oss << format("| {:^4} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} | {:^14f} |\n",
+                    i + 1, point.x, point.y, point.z, qi, ui, p_abs, p_rel);
+            }
+            cout << oss.str() << "\n";
+            relative = absolute / relative;
+            cout << format("Absolute error: {:8.4e}\n", absolute);
+            cout << format("Relative error: {:8.4e}\n", relative);
+
+            q[0] = std::move(q[1]);
+            q[1] = std::move(q[2]);
+        }
+
         return _solve;
     }
 
@@ -244,7 +344,7 @@ namespace fem::three_dim {
             _grid.points[mesh.indOfPoints[0]],
             _grid.points[mesh.indOfPoints[7]],
         };
-        auto gamma = addGamma ? _funcs.gamma(p[0].x, p[0].y, p[0].z, mesh.materialNum) : 1.0;
+        auto gamma = addGamma ? _funcs.sigma(p[0].x, p[0].y, p[0].z, mesh.materialNum) : 1.0;
 
         double hx = p[1].x - p[0].x;
         double hy = p[1].y - p[0].y;
@@ -265,7 +365,7 @@ namespace fem::three_dim {
         return m;
     }
 
-    auto SolverCuboidLinear::getLocalB(const MeshCuboidLinear& mesh) -> LocalCuboidLinearVec {
+    auto SolverCuboidLinear::getLocalB(const MeshCuboidLinear& mesh, double time) -> LocalCuboidLinearVec {
         LocalCuboidLinearVec b = {};
 
         const array<Point, 8> p = {
@@ -283,7 +383,7 @@ namespace fem::three_dim {
         for (size_t i = 0; i < 8; i++) {
             double sum = 0.0;
             for (size_t j = 0; j < 8; j++) {
-                sum += m[i][j] * _funcs.func(p[j].x, p[j].y, p[j].z, mesh.materialNum);
+                sum += m[i][j] * _funcs.func(p[j].x, p[j].y, p[j].z, time, mesh.materialNum);
             }
             b[i] = sum;
         }
@@ -296,7 +396,7 @@ namespace fem::three_dim {
         // TODO: Implement
     }
 
-    void SolverCuboidLinear::includeS1() {
+    void SolverCuboidLinear::includeS1(double time) {
         for (const auto& mesh : _grid.meshes) {
             const array<Point, 8> p = {
             _grid.points[mesh.indOfPoints[0]],
@@ -313,7 +413,7 @@ namespace fem::three_dim {
                     auto local_ind = s1.pointsIndices[i];
                     auto ind = mesh.indOfPoints[local_ind];
                     _global_mat.di.at(ind) = 1.0;
-                    _global_b.at(ind) = _funcs.s1_func(p[local_ind].x, p[local_ind].y, p[local_ind].z, s1.functionNumber);
+                    _global_b.at(ind) = _funcs.s1_func(p[local_ind].x, p[local_ind].y, p[local_ind].z, time, s1.functionNumber);
 
                     // Null string in the lower triangle part
                     for (auto j = _global_mat.ig[ind]; j < _global_mat.ig[ind + 1]; j++) {

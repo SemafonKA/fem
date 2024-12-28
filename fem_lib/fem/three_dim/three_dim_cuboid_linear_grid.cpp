@@ -109,16 +109,16 @@ static void fillPoints(const Domain& domain, fem::three_dim::GridCuboidLinear& g
 
             const array<size_t, 4> gridInd = {
                 ii + jj * grid.Kx, // Index of BL point
-                ii + (domain.nx[i] * (domain.splitX + 1)) + jj * grid.Kx, // Index of BR point
-                ii + (jj + domain.ny[j] * (domain.splitY + 1)) * grid.Kx, // Index of TL point
-                ii + (domain.nx[i] * (domain.splitX + 1)) + (jj + domain.ny[j] * (domain.splitY + 1)) * grid.Kx, // Index of TR point
+                ii + (domain.nx[i] * static_cast<size_t>(pow(2, domain.splitX))) + jj * grid.Kx, // Index of BR point
+                ii + (jj + domain.ny[j] * static_cast<size_t>(pow(2, domain.splitY))) * grid.Kx, // Index of TL point
+                ii + (domain.nx[i] * static_cast<size_t>(pow(2, domain.splitX))) + (jj + domain.ny[j] * static_cast<size_t>(pow(2, domain.splitY))) * grid.Kx, // Index of TR point
             };
 
             // Set value for corner points
             for (size_t k = 0; k < gridInd.size(); k++) {
                 auto& p = grid.points.at(gridInd[k]);
-                p.x = domain.X.at(domainInd[k] % grid.Kx); // We got only BOTTOM X values
-                p.y = domain.Y.at((domainInd[k] / grid.Kx) * grid.Kx); // and only LEFT Y values for rectangular grids
+                p.x = domain.X.at(domainInd[k] % domain.Kx); // We got only BOTTOM X values
+                p.y = domain.Y.at((domainInd[k] / domain.Kx) * domain.Kx); // and only LEFT Y values for rectangular grids
                 p.z = z0;
             }
 
@@ -129,21 +129,21 @@ static void fillPoints(const Domain& domain, fem::three_dim::GridCuboidLinear& g
             fillSubdivides(grid, gridInd[1], gridInd[3], grid.Kx, domain.cy[j], z0); // Right edge
 
             // fill inner points
-            auto xStep = domain.nx[i] * (domain.splitX + 1);
+            auto xStep = domain.nx[i] * static_cast<size_t>(pow(2, domain.splitX));
             for (size_t k = 1; k < xStep; k++) {
                 fillSubdivides(grid, gridInd[0] + k, gridInd[2] + k, grid.Kx, domain.cy[j], z0);
             }
 
             // go to next ii
-            ii += domain.nx[i] * (domain.splitX + 1);
+            ii += domain.nx[i] * static_cast<size_t>(pow(2, domain.splitX));
         }
         // go to next jj
-        jj += domain.ny[j] * (domain.splitY + 1);
+        jj += domain.ny[j] * static_cast<size_t>(pow(2, domain.splitX));
     }
 
     // Extend nodes by Z axis
+    const auto layerSize = grid.Kx * grid.Ky;
     for (size_t i = 1; i < grid.Kz; i++) {
-        const auto layerSize = grid.Kx * grid.Ky;
         const auto layerBegin = i * layerSize; // Begin index of nodes by [i] Z axis
         for (size_t j = 0; j < layerSize; j++) {
             auto& gp = grid.points.at(j + layerBegin);
@@ -231,12 +231,12 @@ static void fillMaterials(const Domain& domain, fem::three_dim::GridCuboidLinear
     auto XlinesToPoints = std::vector<size_t>(domain.Kx);
     XlinesToPoints.at(0) = 0;
     for (size_t i = 0; i < domain.nx.size(); i++) {
-        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i] * (domain.splitX + 1);
+        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i] * static_cast<size_t>(pow(2, domain.splitX));
     }
     auto YlinesToPoints = std::vector<size_t>(domain.Ky);
     YlinesToPoints.at(0) = 0;
     for (size_t i = 0; i < domain.ny.size(); i++) {
-        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * (domain.splitY + 1);
+        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * static_cast<size_t>(pow(2, domain.splitY));
     }
 
     const auto kxky = grid.Kx * grid.Ky;
@@ -306,12 +306,12 @@ static void fillS1(const Domain& domain, fem::three_dim::GridCuboidLinear& grid)
     auto XlinesToPoints = std::vector<size_t>(domain.Kx);
     XlinesToPoints.at(0) = 0;
     for (size_t i = 0; i < domain.nx.size(); i++) {
-        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i] * (domain.splitX + 1);
+        XlinesToPoints[i + 1] = XlinesToPoints[i] + domain.nx[i] * static_cast<size_t>(pow(2, domain.splitX));
     }
     auto YlinesToPoints = std::vector<size_t>(domain.Ky);
     YlinesToPoints.at(0) = 0;
     for (size_t i = 0; i < domain.ny.size(); i++) {
-        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * (domain.splitY + 1);
+        YlinesToPoints[i + 1] = YlinesToPoints[i] + domain.ny[i] * static_cast<size_t>(pow(2, domain.splitY));
     }
 
     auto conditions = std::vector<fem::three_dim::EdgeCondition>(6); // S1 edge conditions in order: Front, Back, Left, Right, Top, Bottom

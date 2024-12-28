@@ -37,11 +37,11 @@ namespace fem::three_dim {
     class SolverCuboidLinear {
     public:
 
-        inline SolverCuboidLinear(const DomainFunctionsCuboidLinear& funcs, const GridCuboidLinear& grid) :
+        inline SolverCuboidLinear(const DomainFunctionsCuboidLinearDynamic& funcs, const GridCuboidLinear& grid) :
             _funcs(funcs), _grid(grid) {}
 
         [[nodiscard]]
-        auto solveStatic() -> std::vector<double>;
+        auto solveStatic(const std::vector<double>& timeMesh) -> std::vector<double>;
 
         [[nodiscard]]
         auto value(Point p) -> double;
@@ -62,17 +62,17 @@ namespace fem::three_dim {
 
         std::vector<double> _solve;
 
-        DomainFunctionsCuboidLinear _funcs;
+        DomainFunctionsCuboidLinearDynamic _funcs;
         GridCuboidLinear _grid;
 
         void generatePortrait();
 
         auto getLocalG(const MeshCuboidLinear& mesh) -> LocalCuboidLinearMat;
         auto getLocalM(const MeshCuboidLinear& mesh, bool addGamma = true) -> LocalCuboidLinearMat;
-        auto getLocalB(const MeshCuboidLinear& mesh) -> LocalCuboidLinearVec;
+        auto getLocalB(const MeshCuboidLinear& mesh, double time) -> LocalCuboidLinearVec;
 
         void includeS2();
-        void includeS1();
+        void includeS1(double time);
 
         auto findFinite(const Point& p) const->size_t;
     };
